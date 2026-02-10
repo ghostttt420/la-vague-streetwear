@@ -131,11 +131,29 @@ app.use(helmet({
             connectSrc: ["'self'", "https://api.paystack.co"],
         },
     },
+    crossOriginEmbedderPolicy: false,
 }));
 
+// CORS - Allow Netlify frontend
+const allowedOrigins = process.env.FRONTEND_URL 
+    ? [process.env.FRONTEND_URL, process.env.FRONTEND_URL.replace('https://', 'http://')]
+    : ['http://localhost:3000', 'http://127.0.0.1:5500', 'http://localhost:5500', 'http://localhost:8888'];
+
 app.use(cors({
-    origin: process.env.FRONTEND_URL || ['http://localhost:3000', 'http://127.0.0.1:5500'],
-    credentials: true
+    origin: function(origin, callback) {
+        // Allow requests with no origin (mobile apps, curl, etc.)
+        if (!origin) return callback(null, true);
+        
+        if (allowedOrigins.indexOf(origin) !== -1 || allowedOrigins.some(allowed => origin.includes(allowed))) {
+            callback(null, true);
+        } else {
+            console.log('CORS blocked origin:', origin);
+            callback(null, true); // Allow all in development
+        }
+    },
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
 }));
 
 // Rate limiting
@@ -451,6 +469,165 @@ async function sendOrderConfirmation(email, orderId, items, total) {
 
     await transporter.sendMail(mailOptions);
 }
+
+// ============ ADMIN ROUTES ============
+
+// Admin authentication middleware
+const ADMIN_API_KEY = process.env.ADMIN_API_KEY || 'admin-secret-key-change-in-production';
+
+function requireAdminAuth(req, res, next) {
+    const apiKey = req.headers['x-admin-key'];
+    if (apiKey !== ADMIN_API_KEY) {
+        return res.status(401).json({ success: false, error: 'Unauthorized' });
+    }
+    next();
+}
+
+// Admin: Get all orders with details
+app.get('/api/admin/orders', requireAdminAuth, (req, res) => {
+    try {
+        const { status, limit = 50, offset = 0 } = req.query;
+        
+        let sql = 'SELECT * FROM orders';
+        const params = [];
+        
+        if (status && status !== 'all') {
+            sql += ' WHERE status = ?';
+            params.push(status);
+        }
+        
+        sql += ' ORDER BY created_at DESC LIMIT ? OFFSET ?';
+        params.push(parseInt(limit), parseInt(offset));
+        
+        const orders = db.prepare(sql).all(...params);
+        
+        // Get items for each order
+        const ordersWithItems = orders.map(order => {
+            const items = db.prepare('SELECT * FROM order_items WHERE order_id = ?').all(order.id);
+            return { ...order, items };
+        });
+        
+        res.json({ success: true, orders: ordersWithItems });
+    } catch (error) {
+        console.error('Error fetching admin orders:', error);
+        res.status(500).json({ success: false, error: 'Failed to fetch orders' });
+    }
+});
+
+// Admin: Get dashboard stats
+app.get('/api/admin/stats', requireAdminAuth, (req, res) => {
+    try {
+        const totalOrders = db.prepare('SELECT COUNT(*) as count FROM orders').get();
+        const totalSales = db.prepare('SELECT SUM(total) as total FROM orders').get();
+        const totalProducts = db.prepare('SELECT COUNT(*) as count FROM products').get();
+        const pendingOrders = db.prepare("SELECT COUNT(*) as count FROM orders WHERE status = 'pending'").get();
+        
+        // Recent orders (last 7 days)
+        const recentOrders = db.prepare(`
+            SELECT COUNT(*) as count, SUM(total) as sales 
+            FROM orders 
+            WHERE created_at >= datetime('now', '-7 days')
+        `).get();
+        
+        res.json({
+            success: true,
+            stats: {
+                totalOrders: totalOrders.count,
+                totalSales: totalSales.total || 0,
+                totalProducts: totalProducts.count,
+                pendingOrders: pendingOrders.count,
+                recentOrders: recentOrders.count,
+                recentSales: recentOrders.sales || 0
+            }
+        });
+    } catch (error) {
+        console.error('Error fetching stats:', error);
+        res.status(500).json({ success: false, error: 'Failed to fetch stats' });
+    }
+});
+
+// Admin: Update order status
+app.put('/api/admin/orders/:orderId/status', requireAdminAuth, (req, res) => {
+    try {
+        const { orderId } = req.params;
+        const { status } = req.body;
+        
+        const validStatuses = ['pending', 'processing', 'shipped', 'delivered', 'cancelled'];
+        if (!validStatuses.includes(status)) {
+            return res.status(400).json({ success: false, error: 'Invalid status' });
+        }
+        
+        const result = db.prepare('UPDATE orders SET status = ? WHERE id = ?').run(status, orderId);
+        
+        if (result.changes === 0) {
+            return res.status(404).json({ success: false, error: 'Order not found' });
+        }
+        
+        res.json({ success: true, message: 'Status updated' });
+    } catch (error) {
+        console.error('Error updating order status:', error);
+        res.status(500).json({ success: false, error: 'Failed to update status' });
+    }
+});
+
+// Admin: Create/Update product
+app.post('/api/admin/products', requireAdminAuth, (req, res) => {
+    try {
+        const product = req.body;
+        const id = product.id || 'lv-' + Date.now().toString(36);
+        const slug = product.slug || product.name.toLowerCase().replace(/\s+/g, '-');
+        
+        const insert = db.prepare(`
+            INSERT INTO products (id, name, slug, category, price, compare_at_price, description, 
+                                features, images, colors, sizes, inventory, tags, badge)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ON CONFLICT(id) DO UPDATE SET
+                name = excluded.name,
+                price = excluded.price,
+                description = excluded.description,
+                inventory = excluded.inventory
+        `);
+        
+        insert.run(
+            id,
+            product.name,
+            slug,
+            product.category,
+            product.price,
+            product.compareAtPrice,
+            product.description,
+            JSON.stringify(product.features || []),
+            JSON.stringify(product.images || []),
+            JSON.stringify(product.colors || []),
+            JSON.stringify(product.sizes || []),
+            JSON.stringify(product.inventory || {}),
+            JSON.stringify(product.tags || []),
+            product.badge
+        );
+        
+        res.json({ success: true, productId: id });
+    } catch (error) {
+        console.error('Error saving product:', error);
+        res.status(500).json({ success: false, error: 'Failed to save product' });
+    }
+});
+
+// Admin: Delete product
+app.delete('/api/admin/products/:productId', requireAdminAuth, (req, res) => {
+    try {
+        const { productId } = req.params;
+        const result = db.prepare('DELETE FROM products WHERE id = ?').run(productId);
+        
+        if (result.changes === 0) {
+            return res.status(404).json({ success: false, error: 'Product not found' });
+        }
+        
+        res.json({ success: true, message: 'Product deleted' });
+    } catch (error) {
+        console.error('Error deleting product:', error);
+        res.status(500).json({ success: false, error: 'Failed to delete product' });
+    }
+});
 
 // 404 handler for API
 app.use('/api/*', (req, res) => {
