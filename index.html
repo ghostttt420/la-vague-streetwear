@@ -374,21 +374,18 @@
                 <div class="footer-links">
                     <h4>Help</h4>
                     <ul>
-                        <li><a href="#">Shipping</a></li>
-                        <li><a href="#">Returns</a></li>
-                        <li><a href="#">Size Guide</a></li>
-                        <li><a href="#">FAQ</a></li>
-                        <li><a href="#">Contact</a></li>
+                        <li><a href="shipping.html">Shipping</a></li>
+                        <li><a href="returns.html">Returns</a></li>
+                        <li><a href="faq.html">FAQ</a></li>
+                        <li><a href="contact.html">Contact</a></li>
                     </ul>
                 </div>
                 <div class="footer-links">
                     <h4>Company</h4>
                     <ul>
-                        <li><a href="#about">About</a></li>
-                        <li><a href="#lookbook">Lookbook</a></li>
-                        <li><a href="#">Careers</a></li>
-                        <li><a href="#">Privacy Policy</a></li>
-                        <li><a href="#">Terms</a></li>
+                        <li><a href="index.html#about">About</a></li>
+                        <li><a href="index.html#lookbook">Lookbook</a></li>
+                        <li><a href="faq.html">FAQ</a></li>
                     </ul>
                 </div>
             </div>
@@ -429,16 +426,34 @@
         <div class="cart-items" id="cartItems">
             <div class="cart-empty">
                 <p>Your cart is empty</p>
-                <a href="shop.html" class="btn btn-secondary">Continue Shopping</a>
+                <a href="shop.html" class="btn btn-secondary" onclick="window.closeCart()">Continue Shopping</a>
             </div>
         </div>
-        <div class="cart-footer">
+        <div class="cart-footer" id="cartFooter">
             <div class="cart-subtotal">
                 <span>Subtotal</span>
                 <span id="cartSubtotal">$0</span>
             </div>
-            <button class="btn btn-primary btn-full">Checkout</button>
+            <a href="checkout.html" class="btn btn-primary btn-full" onclick="window.closeCart()">Checkout</a>
             <p class="cart-note">Shipping & taxes calculated at checkout</p>
+        </div>
+    </div>
+
+    <!-- Wishlist Sidebar -->
+    <div class="wishlist-overlay" id="wishlistOverlay"></div>
+    <div class="wishlist-sidebar" id="wishlistSidebar">
+        <div class="wishlist-header">
+            <h3>Your Wishlist</h3>
+            <button class="wishlist-close" id="wishlistClose">×</button>
+        </div>
+        <div class="wishlist-items" id="wishlistItems">
+            <div class="wishlist-empty">
+                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1">
+                    <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+                </svg>
+                <p>Your wishlist is empty</p>
+                <a href="shop.html" class="btn btn-secondary" onclick="window.closeWishlist()">Start Shopping</a>
+            </div>
         </div>
     </div>
 

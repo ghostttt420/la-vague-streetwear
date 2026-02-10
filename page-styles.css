@@ -1,0 +1,317 @@
+/* ============================================
+   LA VAGUE - Content Page Styles (FAQ, Shipping, Contact, etc.)
+   ============================================ */
+
+/* Page Header */
+.page-header {
+    padding: 10rem 0 4rem;
+    background: var(--color-bg);
+    text-align: center;
+    border-bottom: 1px solid var(--color-border);
+}
+
+.page-title {
+    font-family: var(--font-heading);
+    font-size: clamp(2.5rem, 6vw, 4rem);
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    margin-bottom: 0.75rem;
+}
+
+.page-subtitle {
+    color: var(--color-text-muted);
+    font-size: 1.125rem;
+}
+
+/* Page Content */
+.page-content {
+    padding: 4rem 0 6rem;
+    background: var(--color-bg);
+    min-height: 50vh;
+}
+
+/* FAQ Grid */
+.faq-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 3rem;
+}
+
+.faq-section {
+    margin-bottom: 2rem;
+}
+
+.faq-category {
+    font-family: var(--font-heading);
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin-bottom: 1.5rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 2px solid var(--color-accent);
+}
+
+.faq-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.faq-item {
+    border: 1px solid var(--color-border);
+    background: var(--color-bg-secondary);
+}
+
+.faq-question {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1.25rem;
+    font-size: 1rem;
+    font-weight: 500;
+    text-align: left;
+    background: none;
+    border: none;
+    color: var(--color-text);
+    cursor: pointer;
+    transition: var(--transition-fast);
+}
+
+.faq-question:hover {
+    background: var(--color-bg);
+}
+
+.faq-question svg {
+    transition: var(--transition-fast);
+    flex-shrink: 0;
+}
+
+.faq-item.active .faq-question svg {
+    transform: rotate(180deg);
+}
+
+.faq-answer {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease;
+}
+
+.faq-item.active .faq-answer {
+    max-height: 500px;
+}
+
+.faq-answer p {
+    padding: 0 1.25rem 1.25rem;
+    color: var(--color-text-muted);
+    line-height: 1.7;
+}
+
+/* FAQ Contact CTA */
+.faq-contact {
+    text-align: center;
+    padding: 4rem;
+    background: var(--color-bg-secondary);
+    border: 1px solid var(--color-border);
+    margin-top: 3rem;
+}
+
+.faq-contact h3 {
+    font-family: var(--font-heading);
+    font-size: 1.5rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+}
+
+.faq-contact p {
+    color: var(--color-text-muted);
+    margin-bottom: 1.5rem;
+}
+
+/* Shipping/Returns Pages */
+.policy-section {
+    max-width: 800px;
+    margin: 0 auto 3rem;
+}
+
+.policy-section:last-child {
+    margin-bottom: 0;
+}
+
+.policy-title {
+    font-family: var(--font-heading);
+    font-size: 1.5rem;
+    font-weight: 600;
+    margin-bottom: 1rem;
+}
+
+.policy-content p {
+    color: var(--color-text-muted);
+    line-height: 1.8;
+    margin-bottom: 1rem;
+}
+
+.policy-content ul {
+    list-style: disc;
+    padding-left: 1.5rem;
+    color: var(--color-text-muted);
+    line-height: 1.8;
+}
+
+.policy-content li {
+    margin-bottom: 0.5rem;
+}
+
+/* Shipping Rates Table */
+.shipping-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 1.5rem 0;
+}
+
+.shipping-table th,
+.shipping-table td {
+    padding: 1rem;
+    text-align: left;
+    border-bottom: 1px solid var(--color-border);
+}
+
+.shipping-table th {
+    font-weight: 600;
+    background: var(--color-bg-secondary);
+}
+
+.shipping-table td {
+    color: var(--color-text-muted);
+}
+
+/* Contact Page */
+.contact-layout {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 4rem;
+}
+
+.contact-info h2 {
+    font-family: var(--font-heading);
+    font-size: 1.75rem;
+    font-weight: 600;
+    margin-bottom: 1rem;
+}
+
+.contact-info > p {
+    color: var(--color-text-muted);
+    line-height: 1.7;
+    margin-bottom: 2rem;
+}
+
+.contact-methods {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.contact-method {
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+}
+
+.contact-method svg {
+    color: var(--color-accent);
+    flex-shrink: 0;
+}
+
+.contact-method h4 {
+    font-weight: 600;
+    margin-bottom: 0.25rem;
+}
+
+.contact-method p {
+    color: var(--color-text-muted);
+    font-size: 0.9rem;
+}
+
+/* Contact Form */
+.contact-form {
+    background: var(--color-bg-secondary);
+    border: 1px solid var(--color-border);
+    padding: 2rem;
+}
+
+.contact-form h3 {
+    font-family: var(--font-heading);
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin-bottom: 1.5rem;
+}
+
+.form-group {
+    margin-bottom: 1.25rem;
+}
+
+.form-group label {
+    display: block;
+    font-size: 0.875rem;
+    font-weight: 500;
+    margin-bottom: 0.5rem;
+}
+
+.form-group input,
+.form-group textarea,
+.form-group select {
+    width: 100%;
+    padding: 0.875rem 1rem;
+    font-size: 1rem;
+    background: var(--color-bg);
+    border: 1px solid var(--color-border);
+    color: var(--color-text);
+    transition: var(--transition-fast);
+}
+
+.form-group input:focus,
+.form-group textarea:focus,
+.form-group select:focus {
+    outline: none;
+    border-color: var(--color-text);
+}
+
+.form-group textarea {
+    min-height: 150px;
+    resize: vertical;
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+    .faq-grid {
+        grid-template-columns: 1fr;
+        gap: 2rem;
+    }
+    
+    .contact-layout {
+        grid-template-columns: 1fr;
+        gap: 3rem;
+    }
+}
+
+@media (max-width: 768px) {
+    .page-header {
+        padding-top: 8rem;
+    }
+    
+    .faq-contact {
+        padding: 2rem;
+    }
+    
+    .contact-form {
+        padding: 1.5rem;
+    }
+    
+    .shipping-table {
+        font-size: 0.875rem;
+    }
+    
+    .shipping-table th,
+    .shipping-table td {
+        padding: 0.75rem;
+    }
+}
