@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LA VAGUE | Premium Streetwear - Ride the Wave</title>
+    <meta name="description" content="LA VAGUE - Premium streetwear crafted in Nigeria. Timeless designs, heavyweight cotton, sustainable production. Shop hoodies, tees, bottoms & accessories.">
+    <meta name="keywords" content="streetwear, LA VAGUE, premium clothing, hoodies, t-shirts, cargo pants, made in nigeria">
+    
+    <!-- Open Graph -->
+    <meta property="og:title" content="LA VAGUE | Premium Streetwear - Ride the Wave">
+    <meta property="og:description" content="Premium streetwear crafted in Nigeria. Timeless designs for those who set the trend.">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://lavague.com">
+    <meta property="og:image" content="la-vague-red-wordmark.png">
+    
+    <!-- Twitter -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="LA VAGUE | Premium Streetwear">
+    <meta name="twitter:description" content="Premium streetwear crafted in Nigeria. Ride the wave.">
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="la-vague-red-wordmark.png">
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Oswald:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Styles -->
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="home-styles.css">
+    
+    <!-- Structured Data -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "ClothingStore",
+        "name": "LA VAGUE",
+        "description": "Premium streetwear crafted in Nigeria",
+        "url": "https://lavague.com",
+        "logo": "la-vague-red-wordmark.png",
+        "sameAs": [
+            "https://instagram.com/lavague",
+            "https://twitter.com/lavague"
+        ]
+    }
+    </script>
+</head>
+<body>
+    <!-- Announcement Bar -->
+    <div class="announcement-bar">
+        <div class="announcement-content">
+            <span>FREE SHIPPING ON ORDERS OVER $150</span>
+            <span class="announcement-divider">|</span>
+            <span>NEW DROP AVAILABLE NOW</span>
+        </div>
+    </div>
+
+    <!-- Navigation -->
+    <nav class="nav" id="nav">
+        <div class="nav-container">
+            <a href="index.html" class="nav-logo">
+                <span class="logo-text">LA VAGUE</span>
+            </a>
+            <ul class="nav-links" id="navLinks">
+                <li><a href="shop.html" class="nav-link">Shop</a></li>
+                <li><a href="#collections" class="nav-link">Collections</a></li>
+                <li><a href="#lookbook" class="nav-link">Lookbook</a></li>
+                <li><a href="#about" class="nav-link">About</a></li>
+                <li><a href="#contact" class="nav-link">Contact</a></li>
+            </ul>
+            <div class="nav-actions">
+                <button class="nav-btn" id="searchBtn" aria-label="Search">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="11" cy="11" r="8"></circle>
+                        <path d="m21 21-4.35-4.35"></path>
+                    </svg>
+                </button>
+                <button class="nav-btn" id="wishlistBtn" aria-label="Wishlist">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+                    </svg>
+                    <span class="wishlist-count" id="wishlistCount">0</span>
+                </button>
+                <button class="nav-btn cart-btn" aria-label="Cart" id="cartBtn">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M6 6h15l-1.5 9h-12z"></path>
+                        <circle cx="9" cy="20" r="1"></circle>
+                        <circle cx="18" cy="20" r="1"></circle>
+                        <path d="M6 6L5 3H2"></path>
+                    </svg>
+                    <span class="cart-count" id="cartCount">0</span>
+                </button>
+                <button class="mobile-menu-btn" id="mobileMenuBtn" aria-label="Menu">
+                    <span></span>
+                    <span></span>
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero" id="home">
+        <div class="hero-bg">
+            <div class="hero-gradient"></div>
+        </div>
+        <div class="hero-content">
+            <div class="hero-logo reveal-up">
+                <img src="la-vague-red-wordmark.png" alt="LA VAGUE" width="400" height="auto">
+            </div>
+            <h1 class="hero-title">
+                <span class="reveal-text">RIDE</span>
+                <span class="reveal-text">THE</span>
+                <span class="reveal-text">WAVE</span>
+            </h1>
+            <p class="hero-description reveal-up">
+                Timeless streetwear crafted for those who set the trend, not follow it.
+            </p>
+            <div class="hero-cta reveal-up">
+                <a href="shop.html" class="btn btn-primary">Shop Collection</a>
+                <a href="#lookbook" class="btn btn-secondary">View Lookbook</a>
+            </div>
+        </div>
+        <div class="hero-scroll">
+            <span>Scroll</span>
+            <div class="scroll-line"></div>
+        </div>
+    </section>
+
+    <!-- Marquee Section -->
+    <div class="marquee">
+        <div class="marquee-content">
+            <span>NEW DROP AVAILABLE NOW</span>
+            <span class="marquee-dot">◆</span>
+            <span>FREE SHIPPING ON ORDERS OVER $150</span>
+            <span class="marquee-dot">◆</span>
+            <span>LIMITED EDITION PIECES</span>
+            <span class="marquee-dot">◆</span>
+            <span>NEW DROP AVAILABLE NOW</span>
+            <span class="marquee-dot">◆</span>
+            <span>FREE SHIPPING ON ORDERS OVER $150</span>
+            <span class="marquee-dot">◆</span>
+            <span>LIMITED EDITION PIECES</span>
+            <span class="marquee-dot">◆</span>
+        </div>
+    </div>
+
+    <!-- Featured Products Section -->
+    <section class="featured-products" id="featured">
+        <div class="container">
+            <div class="section-header">
+                <span class="section-tag reveal-up">Bestsellers</span>
+                <h2 class="section-title reveal-up">Most Wanted</h2>
+            </div>
+            <div class="featured-grid" id="featuredProducts">
+                <!-- Loaded dynamically -->
+            </div>
+            <div class="section-cta reveal-up">
+                <a href="shop.html" class="btn btn-secondary">View All Products</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Collections Section -->
+    <section class="collections" id="collections">
+        <div class="container">
+            <div class="section-header">
+                <span class="section-tag reveal-up">Collections</span>
+                <h2 class="section-title reveal-up">Shop by Category</h2>
+            </div>
+            <div class="collections-grid">
+                <a href="shop.html?category=hoodies" class="collection-card featured reveal-scale">
+                    <div class="collection-image">
+                        <img src="https://images.unsplash.com/photo-1556821840-3a63f95609a7?w=800&q=80" alt="Hoodies Collection" loading="lazy">
+                        <div class="collection-overlay">
+                            <span class="collection-tag">New</span>
+                        </div>
+                    </div>
+                    <div class="collection-info">
+                        <h3>Hoodies</h3>
+                        <p>Premium heavyweight essentials</p>
+                        <span class="collection-link">Shop Now →</span>
+                    </div>
+                </a>
+                <a href="shop.html?category=tees" class="collection-card reveal-scale">
+                    <div class="collection-image">
+                        <img src="https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=600&q=80" alt="Tees Collection" loading="lazy">
+                    </div>
+                    <div class="collection-info">
+                        <h3>T-Shirts</h3>
+                        <p>Bold statements, premium fit</p>
+                        <span class="collection-link">Shop Now →</span>
+                    </div>
+                </a>
+                <a href="shop.html?category=bottoms" class="collection-card reveal-scale">
+                    <div class="collection-image">
+                        <img src="https://images.unsplash.com/photo-1624378439575-d8705ad7ae80?w=600&q=80" alt="Bottoms Collection" loading="lazy">
+                    </div>
+                    <div class="collection-info">
+                        <h3>Bottoms</h3>
+                        <p>From cargo to denim</p>
+                        <span class="collection-link">Shop Now →</span>
+                    </div>
+                </a>
+                <a href="shop.html?category=accessories" class="collection-card reveal-scale">
+                    <div class="collection-image">
+                        <img src="https://images.unsplash.com/photo-1588850561407-ed78c282e89b?w=600&q=80" alt="Accessories Collection" loading="lazy">
+                    </div>
+                    <div class="collection-info">
+                        <h3>Accessories</h3>
+                        <p>Complete the look</p>
+                        <span class="collection-link">Shop Now →</span>
+                    </div>
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Lookbook Section -->
+    <section class="lookbook" id="lookbook">
+        <div class="container">
+            <div class="section-header centered">
+                <span class="section-tag reveal-up">Lookbook</span>
+                <h2 class="section-title reveal-up">Style Guide</h2>
+            </div>
+            <div class="lookbook-grid">
+                <div class="lookbook-item large reveal-up" data-look="1">
+                    <img src="https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=1200&q=80" alt="Look 01 - Urban Nights" loading="lazy">
+                    <div class="lookbook-info">
+                        <span class="lookbook-number">01</span>
+                        <h3>Urban Nights</h3>
+                    </div>
+                </div>
+                <div class="lookbook-item reveal-up" data-look="2">
+                    <img src="https://images.unsplash.com/photo-1503342217505-b0a15ec3261c?w=600&q=80" alt="Look 02 - Daylight" loading="lazy">
+                    <div class="lookbook-info">
+                        <span class="lookbook-number">02</span>
+                        <h3>Daylight</h3>
+                    </div>
+                </div>
+                <div class="lookbook-item reveal-up" data-look="3">
+                    <img src="https://images.unsplash.com/photo-1552374196-1ab2a1c593e8?w=600&q=80" alt="Look 03 - Skate Park" loading="lazy">
+                    <div class="lookbook-info">
+                        <span class="lookbook-number">03</span>
+                        <h3>Skate Park</h3>
+                    </div>
+                </div>
+                <div class="lookbook-item reveal-up" data-look="4">
+                    <img src="https://images.unsplash.com/photo-1492447273231-0f8fecec1e3a?w=600&q=80" alt="Look 04 - Downtown" loading="lazy">
+                    <div class="lookbook-info">
+                        <span class="lookbook-number">04</span>
+                        <h3>Downtown</h3>
+                    </div>
+                </div>
+                <div class="lookbook-item large reveal-up" data-look="5">
+                    <img src="https://images.unsplash.com/photo-1520975661595-6453be3f7070?w=1200&q=80" alt="Look 05 - After Hours" loading="lazy">
+                    <div class="lookbook-info">
+                        <span class="lookbook-number">05</span>
+                        <h3>After Hours</h3>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Lookbook Lightbox -->
+    <div class="lightbox-overlay" id="lightboxOverlay"></div>
+    <div class="lightbox" id="lightbox">
+        <button class="lightbox-close" id="lightboxClose">×</button>
+        <button class="lightbox-nav prev" id="lightboxPrev">‹</button>
+        <button class="lightbox-nav next" id="lightboxNext">›</button>
+        <div class="lightbox-content">
+            <img src="" alt="" id="lightboxImage">
+            <div class="lightbox-info">
+                <span class="lightbox-number" id="lightboxNumber"></span>
+                <h3 id="lightboxTitle"></h3>
+            </div>
+        </div>
+    </div>
+
+    <!-- About Section -->
+    <section class="about" id="about">
+        <div class="container">
+            <div class="about-grid">
+                <div class="about-content reveal-left">
+                    <span class="section-tag">About Us</span>
+                    <h2 class="section-title">Born from the Streets,<br>Refined for the Future</h2>
+                    <p>
+                        La Vague emerged from a simple belief: streetwear should be timeless. 
+                        Founded in 2024, we set out to create pieces that transcend seasons 
+                        and trends — garments that feel as relevant today as they will in a decade.
+                    </p>
+                    <p>
+                        Every piece is thoughtfully designed in our studio and crafted in 
+                        Nigeria using premium materials. We don't chase hype. We build classics.
+                    </p>
+                    <div class="about-stats">
+                        <div class="stat">
+                            <span class="stat-number">100%</span>
+                            <span class="stat-label">Organic Cotton</span>
+                        </div>
+                        <div class="stat">
+                            <span class="stat-number">POR</span>
+                            <span class="stat-label">Made in Nigeria</span>
+                        </div>
+                        <div class="stat">
+                            <span class="stat-number">∞</span>
+                            <span class="stat-label">Timeless Design</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="about-image reveal-right">
+                    <img src="https://images.unsplash.com/photo-1558171813-4c088753af8f?w=800&q=80" alt="LA VAGUE About" loading="lazy">
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Newsletter Section -->
+    <section class="newsletter">
+        <div class="container">
+            <div class="newsletter-content reveal-up">
+                <h2 class="newsletter-title">Join the Wave</h2>
+                <p class="newsletter-text">
+                    Subscribe for early access to drops, exclusive offers, and behind-the-scenes content.
+                </p>
+                <form class="newsletter-form" id="newsletterForm">
+                    <input type="email" placeholder="Enter your email" required class="newsletter-input" id="newsletterEmail">
+                    <button type="submit" class="btn btn-primary">Subscribe</button>
+                </form>
+                <p class="newsletter-note">No spam, just waves. Unsubscribe anytime.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer" id="contact">
+        <div class="container">
+            <div class="footer-grid">
+                <div class="footer-brand">
+                    <img src="la-vague-red-wordmark.png" alt="LA VAGUE" class="footer-logo-img" width="200">
+                    <p class="footer-tagline">Ride the wave. Timeless streetwear for the modern individual.</p>
+                    <div class="social-links">
+                        <a href="#" class="social-link" aria-label="Instagram">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect>
+                                <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path>
+                                <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line>
+                            </svg>
+                        </a>
+                        <a href="#" class="social-link" aria-label="Twitter">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M22 4s-.7 2.1-2 3.4c1.6 10-9.4 17.3-18 11.6 2.2.1 4.4-.6 6-2C3 15.5.5 9.6 3 5c2.2 2.6 5.6 4.1 9 4-.9-4.2 4-6.6 7-3.8 1.1 0 3-1.2 3-1.2z"></path>
+                            </svg>
+                        </a>
+                        <a href="#" class="social-link" aria-label="TikTok">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M9 12a4 4 0 1 0 4 4V4a5 5 0 0 0 5 5"></path>
+                            </svg>
+                        </a>
+                    </div>
+                </div>
+                <div class="footer-links">
+                    <h4>Shop</h4>
+                    <ul>
+                        <li><a href="shop.html">All Products</a></li>
+                        <li><a href="shop.html?category=hoodies">Hoodies</a></li>
+                        <li><a href="shop.html?category=tees">T-Shirts</a></li>
+                        <li><a href="shop.html?category=bottoms">Bottoms</a></li>
+                        <li><a href="shop.html?category=accessories">Accessories</a></li>
+                    </ul>
+                </div>
+                <div class="footer-links">
+                    <h4>Help</h4>
+                    <ul>
+                        <li><a href="#">Shipping</a></li>
+                        <li><a href="#">Returns</a></li>
+                        <li><a href="#">Size Guide</a></li>
+                        <li><a href="#">FAQ</a></li>
+                        <li><a href="#">Contact</a></li>
+                    </ul>
+                </div>
+                <div class="footer-links">
+                    <h4>Company</h4>
+                    <ul>
+                        <li><a href="#about">About</a></li>
+                        <li><a href="#lookbook">Lookbook</a></li>
+                        <li><a href="#">Careers</a></li>
+                        <li><a href="#">Privacy Policy</a></li>
+                        <li><a href="#">Terms</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2024 LA VAGUE. All rights reserved.</p>
+                <div class="payment-methods">
+                    <span class="payment-icon">VISA</span>
+                    <span class="payment-icon">MC</span>
+                    <span class="payment-icon">AMEX</span>
+                    <span class="payment-icon">PP</span>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Search Overlay -->
+    <div class="search-overlay" id="searchOverlay">
+        <div class="search-container">
+            <button class="search-close" id="searchClose">×</button>
+            <div class="search-input-wrapper">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="11" cy="11" r="8"></circle>
+                    <path d="m21 21-4.35-4.35"></path>
+                </svg>
+                <input type="text" id="searchInput" placeholder="Search products..." autocomplete="off">
+            </div>
+            <div class="search-results" id="searchResults"></div>
+        </div>
+    </div>
+
+    <!-- Cart Sidebar -->
+    <div class="cart-overlay" id="cartOverlay"></div>
+    <div class="cart-sidebar" id="cartSidebar">
+        <div class="cart-header">
+            <h3>Your Cart</h3>
+            <button class="cart-close" id="cartClose">×</button>
+        </div>
+        <div class="cart-items" id="cartItems">
+            <div class="cart-empty">
+                <p>Your cart is empty</p>
+                <a href="shop.html" class="btn btn-secondary">Continue Shopping</a>
+            </div>
+        </div>
+        <div class="cart-footer">
+            <div class="cart-subtotal">
+                <span>Subtotal</span>
+                <span id="cartSubtotal">$0</span>
+            </div>
+            <button class="btn btn-primary btn-full">Checkout</button>
+            <p class="cart-note">Shipping & taxes calculated at checkout</p>
+        </div>
+    </div>
+
+    <!-- Toast Container -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <!-- Scripts -->
+    <script src="products.js"></script>
+    <script src="home.js"></script>
+</body>
+</html>
