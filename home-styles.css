@@ -62,15 +62,15 @@
 
 .hero-logo {
     position: absolute;
-    top: 15px;
+    top: -10px;
     left: 50%;
-    transform: translateX(calc(-50% - 200px));
+    transform: translateX(calc(-50% + 80px));
     margin-bottom: 0;
     z-index: 2;
 }
 
 .hero-logo img {
-    max-width: 70px;
+    max-width: 60px;
     height: auto;
 }
 
@@ -80,38 +80,40 @@
 
 @media (max-width: 1200px) {
     .hero-logo {
-        transform: translateX(calc(-50% - 180px));
+        transform: translateX(calc(-50% + 70px));
     }
 }
 
 @media (max-width: 1024px) {
     .hero-logo {
-        transform: translateX(calc(-50% - 140px));
+        transform: translateX(calc(-50% + 55px));
+        top: -5px;
     }
     
     .hero-logo img {
-        max-width: 60px;
+        max-width: 50px;
     }
 }
 
 @media (max-width: 768px) {
     .hero-logo {
-        transform: translateX(calc(-50% - 120px));
+        transform: translateX(calc(-50% + 45px));
+        top: -2px;
     }
     
     .hero-logo img {
-        max-width: 55px;
+        max-width: 42px;
     }
 }
 
 @media (max-width: 480px) {
     .hero-logo {
-        transform: translateX(calc(-50% - 90px));
-        top: 10px;
+        transform: translateX(calc(-50% + 35px));
+        top: 0;
     }
     
     .hero-logo img {
-        max-width: 45px;
+        max-width: 35px;
     }
 }
 
