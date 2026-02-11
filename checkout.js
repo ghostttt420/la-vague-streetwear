@@ -2,7 +2,10 @@
  * LA VAGUE - Checkout Page JavaScript
  */
 
+console.log('=== CHECKOUT.JS LOADED ===');
+
 document.addEventListener('DOMContentLoaded', () => {
+    console.log('=== CHECKOUT DOM LOADED ===');
     // ==========================================
     // STATE
     // ==========================================
@@ -37,14 +40,18 @@ document.addEventListener('DOMContentLoaded', () => {
     // INITIALIZATION
     // ==========================================
     function init() {
+        console.log('Cart items:', state.cart.length);
         if (state.cart.length === 0) {
+            console.log('Cart is empty, redirecting to shop...');
             window.location.href = 'shop.html';
             return;
         }
         
+        console.log('Initializing checkout...');
         renderOrderSummary();
         updateTotals();
         bindEvents();
+        console.log('Checkout initialized successfully');
         
         // Nav scroll effect
         window.addEventListener('scroll', () => {
@@ -148,15 +155,19 @@ document.addEventListener('DOMContentLoaded', () => {
 
     async function handlePlaceOrder(e) {
         e.preventDefault();
+        console.log('=== PLACE ORDER CLICKED ===');
         
         // Basic validation
         const requiredFields = ['email', 'firstName', 'lastName', 'address', 'city', 'state', 'zip', 'phone'];
         let isValid = true;
+        const missingFields = [];
         
         requiredFields.forEach(field => {
             const input = document.getElementById(field);
+            console.log(`Field ${field}:`, input ? (input.value ? 'has value' : 'EMPTY') : 'NOT FOUND');
             if (!input || !input.value.trim()) {
                 isValid = false;
+                missingFields.push(field);
                 input?.classList.add('error');
             } else {
                 input?.classList.remove('error');
@@ -164,9 +175,11 @@ document.addEventListener('DOMContentLoaded', () => {
         });
         
         if (!isValid) {
+            console.log('Validation failed, missing:', missingFields);
             showToast('Please fill in all required fields', 'error');
             return;
         }
+        console.log('Validation passed');
         
         // Get form data - Match server.js expected format
         const firstName = document.getElementById('firstName').value;
@@ -203,6 +216,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 : 'https://la-vague-api.onrender.com/api';
             
             console.log('Sending order to API:', API_URL);
+            console.log('Order data:', JSON.stringify(orderData, null, 2));
             
             const response = await fetch(`${API_URL}/orders`, {
                 method: 'POST',
@@ -214,6 +228,10 @@ document.addEventListener('DOMContentLoaded', () => {
             
             const result = await response.json();
             console.log('API Result:', result);
+            
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}: ${result.error || 'Unknown error'}`);
+            }
             
             if (result.success) {
                 // Save to localStorage for admin fallback (use format admin.js expects)
@@ -341,7 +359,13 @@ document.addEventListener('DOMContentLoaded', () => {
         });
         
         // Place order
-        elements.placeOrderBtn?.addEventListener('click', handlePlaceOrder);
+        console.log('Place Order Button:', elements.placeOrderBtn ? 'FOUND' : 'NOT FOUND');
+        if (elements.placeOrderBtn) {
+            elements.placeOrderBtn.addEventListener('click', handlePlaceOrder);
+            console.log('Event listener attached to place order button');
+        } else {
+            console.error('ERROR: Place Order button not found!');
+        }
     }
 
     // Start
