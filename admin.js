@@ -197,7 +197,7 @@ document.addEventListener('DOMContentLoaded', () => {
             <tr onclick="viewOrder('${order.id}')" style="cursor: pointer;">
                 <td><strong>${order.id}</strong></td>
                 <td>${firstName} ${lastName}</td>
-                <td>${new Date(date).toLocaleDateString()}</td>
+                <td>${date && !isNaN(new Date(date)) ? new Date(date).toLocaleDateString() : 'N/A'}</td>
                 <td>$${order.total || 0}</td>
                 <td><span class="status-badge ${orderStatus}">${orderStatus}</span></td>
             </tr>
@@ -205,39 +205,43 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     async function loadOrders() {
+        console.log('=== LOAD ORDERS START ===');
         const tbody = document.getElementById('ordersTable');
-        const filter = document.getElementById('orderStatusFilter')?.value || 'all';
+        console.log('tbody element:', tbody ? 'FOUND' : 'NOT FOUND');
         
-        console.log('Loading orders...');
+        const filter = document.getElementById('orderStatusFilter')?.value || 'all';
+        console.log('Filter:', filter);
+        console.log('API_URL:', API_URL);
+        console.log('ADMIN_KEY:', ADMIN_KEY ? 'SET' : 'NOT SET');
         
         let orders = [];
         
         // Try API first
         try {
             let url = `${API_URL}/admin/orders?key=${ADMIN_KEY}`;
-            if (filter !== 'all') {
-                url += `&status=${filter}`;
-            }
+            console.log('Fetching from URL:', url);
             
             const response = await fetch(url);
+            console.log('Response status:', response.status);
             
             if (response.ok) {
                 const data = await response.json();
+                console.log('API response data:', data);
                 orders = data.orders || [];
                 state.orders = orders;
-                console.log('Loaded orders from API:', orders.length, orders);
+                console.log('Loaded orders from API:', orders.length);
             } else {
-                const errorData = await response.json().catch(() => ({}));
-                console.error('API error loading orders:', response.status, errorData);
+                const errorText = await response.text();
+                console.error('API error:', response.status, errorText);
             }
         } catch (apiError) {
-            console.log('API not available:', apiError);
+            console.error('API fetch error:', apiError);
         }
         
         // Always ALSO load from localStorage
         try {
             const localOrders = JSON.parse(localStorage.getItem('orders') || '[]');
-            console.log('Loaded orders from localStorage:', localOrders.length);
+            console.log('Local orders:', localOrders.length);
             
             // If no API orders, use localStorage
             if (orders.length === 0) {
@@ -245,8 +249,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 state.orders = orders;
             }
         } catch (e) {
-            console.error('Error reading localStorage:', e);
+            console.error('localStorage error:', e);
         }
+        
+        console.log('Total orders to display:', orders.length);
         
         // Apply filter
         let filteredOrders = orders;
@@ -254,12 +260,16 @@ document.addEventListener('DOMContentLoaded', () => {
             filteredOrders = orders.filter(o => (o.order_status || o.status) === filter);
         }
         
+        console.log('Filtered orders:', filteredOrders.length);
+        
         if (filteredOrders.length === 0) {
             tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; padding: 2rem;">No orders found</td></tr>';
+            console.log('=== LOAD ORDERS END - No orders ===');
             return;
         }
         
-        tbody.innerHTML = filteredOrders.map(order => {
+        try {
+            tbody.innerHTML = filteredOrders.map(order => {
             // Handle both API format (snake_case) and localStorage format (camelCase)
             const customerName = order.customer_name || (order.firstName ? `${order.firstName} ${order.lastName}` : '');
             const nameParts = customerName ? customerName.split(' ') : ['', ''];
@@ -285,6 +295,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 </tr>
             `;
         }).join('');
+            console.log('=== LOAD ORDERS END - Success ===');
+        } catch (renderError) {
+            console.error('Error rendering orders:', renderError);
+            tbody.innerHTML = `<tr><td colspan="8" style="text-align: center; padding: 2rem; color: red;">Error: ${renderError.message}</td></tr>`;
+        }
     }
 
     function loadProducts() {
