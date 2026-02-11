@@ -238,6 +238,9 @@ document.addEventListener('DOMContentLoaded', () => {
         } catch (error) {
             console.error('Order API error:', error);
             
+            // Show error to user
+            alert('API Error: ' + error.message + '\n\nFalling back to local storage. Order will NOT appear in admin panel until API is fixed.');
+            
             // Fallback: Save order locally
             const orders = JSON.parse(localStorage.getItem('orders') || '[]');
             const fallbackOrder = {
@@ -254,7 +257,7 @@ document.addEventListener('DOMContentLoaded', () => {
             // Clear cart
             localStorage.removeItem('cart');
             
-            showToast('Order placed successfully!', 'success');
+            showToast('Order saved locally (API failed)', 'success');
             
             setTimeout(() => {
                 window.location.href = `order-confirmation.html?order=${fallbackOrder.id}`;
