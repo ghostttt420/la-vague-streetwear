@@ -319,15 +319,19 @@ app.get('/api/test', (req, res) => {
 app.get('/api/products', async (req, res) => {
     try {
         const result = await query('SELECT * FROM products ORDER BY created_at DESC');
-        const products = result.rows.map(p => ({
-            ...p,
-            features: JSON.parse(p.features || '[]'),
-            images: JSON.parse(p.images || '[]'),
-            colors: JSON.parse(p.colors || '[]'),
-            sizes: JSON.parse(p.sizes || '[]'),
-            inventory: JSON.parse(p.inventory || '{}'),
-            tags: JSON.parse(p.tags || '[]')
-        }));
+        const products = result.rows.map(p => {
+            // PostgreSQL pg driver auto-parses JSON, SQLite returns strings
+            const parseJson = (val) => typeof val === 'string' ? JSON.parse(val || 'null') : val;
+            return {
+                ...p,
+                features: parseJson(p.features) || [],
+                images: parseJson(p.images) || [],
+                colors: parseJson(p.colors) || [],
+                sizes: parseJson(p.sizes) || [],
+                inventory: parseJson(p.inventory) || {},
+                tags: parseJson(p.tags) || []
+            };
+        });
         res.json({ success: true, products });
     } catch (error) {
         console.error('Error fetching products:', error);
@@ -343,16 +347,18 @@ app.get('/api/products/:slug', async (req, res) => {
             return res.status(404).json({ success: false, error: 'Product not found' });
         }
         const p = result.rows[0];
+        // PostgreSQL pg driver auto-parses JSON, SQLite returns strings
+        const parseJson = (val) => typeof val === 'string' ? JSON.parse(val || 'null') : val;
         res.json({
             success: true,
             product: {
                 ...p,
-                features: JSON.parse(p.features || '[]'),
-                images: JSON.parse(p.images || '[]'),
-                colors: JSON.parse(p.colors || '[]'),
-                sizes: JSON.parse(p.sizes || '[]'),
-                inventory: JSON.parse(p.inventory || '{}'),
-                tags: JSON.parse(p.tags || '[]')
+                features: parseJson(p.features) || [],
+                images: parseJson(p.images) || [],
+                colors: parseJson(p.colors) || [],
+                sizes: parseJson(p.sizes) || [],
+                inventory: parseJson(p.inventory) || {},
+                tags: parseJson(p.tags) || []
             }
         });
     } catch (error) {
@@ -422,11 +428,16 @@ app.get('/api/admin/orders', async (req, res) => {
         const result = await query('SELECT * FROM orders ORDER BY created_at DESC');
         console.log(`[ADMIN] Found ${result.rows.length} orders`);
         
-        const orders = result.rows.map(o => ({
-            ...o,
-            shippingAddress: JSON.parse(o.shipping_address || '{}'),
-            items: JSON.parse(o.items || '[]')
-        }));
+        const orders = result.rows.map(o => {
+            // PostgreSQL pg driver auto-parses JSON, SQLite returns strings
+            const shippingAddress = typeof o.shipping_address === 'string' 
+                ? JSON.parse(o.shipping_address || '{}') 
+                : (o.shipping_address || {});
+            const items = typeof o.items === 'string' 
+                ? JSON.parse(o.items || '[]') 
+                : (o.items || []);
+            return { ...o, shippingAddress, items };
+        });
         res.json({ success: true, orders });
     } catch (error) {
         console.error('[ADMIN] Error fetching orders:', error);
@@ -479,11 +490,16 @@ app.get('/api/admin/stats', async (req, res) => {
             recentOrdersResult = { rows: db.prepare('SELECT * FROM orders ORDER BY created_at DESC LIMIT 5').all() };
         }
         
-        const recentOrders = recentOrdersResult.rows.map(o => ({
-            ...o,
-            shippingAddress: JSON.parse(o.shipping_address || '{}'),
-            items: JSON.parse(o.items || '[]')
-        }));
+        const recentOrders = recentOrdersResult.rows.map(o => {
+            // PostgreSQL pg driver auto-parses JSON, SQLite returns strings
+            const shippingAddress = typeof o.shipping_address === 'string' 
+                ? JSON.parse(o.shipping_address || '{}') 
+                : (o.shipping_address || {});
+            const items = typeof o.items === 'string' 
+                ? JSON.parse(o.items || '[]') 
+                : (o.items || []);
+            return { ...o, shippingAddress, items };
+        });
         
         res.json({
             success: true,
