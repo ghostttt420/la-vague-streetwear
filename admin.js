@@ -7,16 +7,18 @@ console.log('=== ADMIN.JS LOADED ===');
 console.log('Current URL:', window.location.href);
 console.log('localStorage orders:', localStorage.getItem('orders'));
 
+// ==========================================
+// CONFIG (Global scope for debug access)
+// ==========================================
+const ADMIN_PASSWORD = 'lavague2024'; // Change this in production!
+const ADMIN_KEY = 'lavague2024';
+const API_URL = window.location.hostname === 'localhost' 
+    ? 'http://localhost:3000/api' 
+    : 'https://la-vague-api.onrender.com/api';
+
 document.addEventListener('DOMContentLoaded', () => {
     console.log('=== DOM LOADED ===');
-    
-    // ==========================================
-    // CONFIG
-    // ==========================================
-    const ADMIN_PASSWORD = 'lavague2024'; // Change this in production!
-    const API_URL = window.location.hostname === 'localhost' 
-        ? 'http://localhost:3000/api' 
-        : 'https://la-vague-api.onrender.com/api';
+    console.log('API_URL:', API_URL);
 
     // ==========================================
     // STATE
@@ -89,6 +91,9 @@ document.addEventListener('DOMContentLoaded', () => {
     function showDashboard() {
         elements.loginScreen.style.display = 'none';
         elements.adminDashboard.style.display = 'grid';
+        // Preload orders data
+        console.log('Dashboard shown, preloading orders...');
+        loadOrders();
     }
 
     // ==========================================
@@ -111,9 +116,6 @@ document.addEventListener('DOMContentLoaded', () => {
         if (tabName === 'orders') loadOrders();
         if (tabName === 'products') loadProducts();
     }
-
-    // Admin API Key (should match server ADMIN_KEY env variable)
-    const ADMIN_KEY = 'lavague2024';
 
     // ==========================================
     // DATA LOADING
@@ -613,10 +615,7 @@ document.addEventListener('DOMContentLoaded', () => {
 // DEBUG: Direct API test function (same as debug page)
 window.testAdminAPI = async function() {
     console.log('=== DIRECT API TEST ===');
-    const API_URL = window.location.hostname === 'localhost' 
-        ? 'http://localhost:3000/api' 
-        : 'https://la-vague-api.onrender.com/api';
-    const ADMIN_KEY = 'lavague2024';
+    // Uses global API_URL and ADMIN_KEY
     
     try {
         const url = `${API_URL}/admin/orders?key=${ADMIN_KEY}`;
