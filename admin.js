@@ -2,14 +2,21 @@
  * LA VAGUE - Admin Panel JavaScript
  */
 
+// DEBUG - This should always show
+console.log('=== ADMIN.JS LOADED ===');
+console.log('Current URL:', window.location.href);
+console.log('localStorage orders:', localStorage.getItem('orders'));
+
 document.addEventListener('DOMContentLoaded', () => {
+    console.log('=== DOM LOADED ===');
+    
     // ==========================================
     // CONFIG
     // ==========================================
     const ADMIN_PASSWORD = 'lavague2024'; // Change this in production!
     const API_URL = window.location.hostname === 'localhost' 
         ? 'http://localhost:3000/api' 
-        : 'https://your-render-app.onrender.com/api';
+        : 'https://la-vague-api.onrender.com/api';
 
     // ==========================================
     // STATE
