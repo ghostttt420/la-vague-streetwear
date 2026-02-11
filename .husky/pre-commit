@@ -1,0 +1,5 @@
+#!/bin/sh
+# LA VAGUE - Pre-commit hook
+# Runs lint-staged to check code quality before commit
+
+npx lint-staged

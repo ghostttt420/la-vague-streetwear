@@ -1,0 +1,25 @@
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+build/
+
+# Database
+database.sqlite
+*.sqlite
+
+# Logs
+*.log
+npm-debug.log*
+
+# Environment variables
+.env
+.env.*
+
+# Git
+.git/
+
+# Misc
+.DS_Store
+Thumbs.db

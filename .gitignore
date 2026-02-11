@@ -45,3 +45,22 @@ Thumbs.db
 # Temporary files
 *.tmp
 *.temp
+
+# Build outputs
+dist/
+build/
+*.tsbuildinfo
+
+# Vite
+.vite/
+
+# Test outputs
+test-results/
+playwright-report/
+coverage/
+
+# Cache
+.cache/
+.parcel-cache/
+.eslintcache
+.stylelintcache

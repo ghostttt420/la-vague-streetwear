@@ -1,0 +1,9 @@
+#!/bin/sh
+# LA VAGUE - Commit message hook
+# Validates commit message format
+
+. "$(dirname "$0")/_/husky.sh"
+
+# Optional: Add commit message validation here
+# Example: Require conventional commits format
+# npx --no -- commitlint --edit ${1}
