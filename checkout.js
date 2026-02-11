@@ -198,29 +198,35 @@ document.addEventListener('DOMContentLoaded', () => {
                 ? 'http://localhost:3000/api' 
                 : 'https://la-vague-api.onrender.com/api';
             
+            console.log('Sending order to API:', API_URL);
+            
             const response = await fetch(`${API_URL}/orders`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(orderData)
             });
             
+            console.log('API Response status:', response.status);
+            
             const result = await response.json();
+            console.log('API Result:', result);
             
             if (result.success) {
-                // Also save to localStorage for the admin panel to read
+                // Save to localStorage for admin fallback
                 const orders = JSON.parse(localStorage.getItem('orders') || '[]');
                 orders.unshift({
                     ...orderData,
                     id: result.orderId,
                     date: new Date().toISOString(),
+                    created_at: new Date().toISOString(),
                     status: 'pending'
                 });
                 localStorage.setItem('orders', JSON.stringify(orders));
+                console.log('Order saved to localStorage:', result.orderId);
                 
                 // Clear cart
                 localStorage.removeItem('cart');
                 
-                // Show success and redirect
                 showToast('Order placed successfully!', 'success');
                 
                 setTimeout(() => {
@@ -230,23 +236,25 @@ document.addEventListener('DOMContentLoaded', () => {
                 throw new Error(result.error || 'Order failed');
             }
         } catch (error) {
-            console.error('Order error:', error);
+            console.error('Order API error:', error);
             
-            // Fallback: Save order locally even if API fails
+            // Fallback: Save order locally
             const orders = JSON.parse(localStorage.getItem('orders') || '[]');
             const fallbackOrder = {
                 ...orderData,
                 id: 'LV-' + Date.now().toString(36).toUpperCase(),
                 date: new Date().toISOString(),
+                created_at: new Date().toISOString(),
                 status: 'pending'
             };
             orders.unshift(fallbackOrder);
             localStorage.setItem('orders', JSON.stringify(orders));
+            console.log('Order saved to localStorage (fallback):', fallbackOrder.id);
             
             // Clear cart
             localStorage.removeItem('cart');
             
-            showToast('Order saved locally (API unavailable)', 'success');
+            showToast('Order placed successfully!', 'success');
             
             setTimeout(() => {
                 window.location.href = `order-confirmation.html?order=${fallbackOrder.id}`;

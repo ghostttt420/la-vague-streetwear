@@ -118,6 +118,9 @@ document.addEventListener('DOMContentLoaded', () => {
     // DATA LOADING
     // ==========================================
     async function loadDashboardData() {
+        console.log('Loading dashboard data...');
+        console.log('localStorage orders:', localStorage.getItem('orders'));
+        
         try {
             // Try to fetch from API first
             let orders = [];
@@ -146,8 +149,16 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             } catch (apiError) {
                 console.log('API not available, using localStorage fallback');
-                // Fallback to localStorage
-                orders = JSON.parse(localStorage.getItem('orders') || '[]');
+                console.log('API Error:', apiError);
+            }
+            
+            // Always ALSO check localStorage (merge with API orders)
+            const localOrders = JSON.parse(localStorage.getItem('orders') || '[]');
+            console.log('Local orders count:', localOrders.length);
+            
+            // If API returned no orders, use localStorage
+            if (orders.length === 0 && localOrders.length > 0) {
+                orders = localOrders;
                 state.stats.totalOrders = orders.length;
                 state.stats.totalProducts = products.length;
                 state.stats.totalSales = orders.reduce((sum, order) => sum + (order.total || 0), 0);
@@ -190,8 +201,12 @@ document.addEventListener('DOMContentLoaded', () => {
         const tbody = document.getElementById('ordersTable');
         const filter = document.getElementById('orderStatusFilter')?.value || 'all';
         
+        console.log('Loading orders...');
+        
+        let orders = [];
+        
+        // Try API first
         try {
-            // Try to fetch from API
             let url = `${API_URL}/admin/orders`;
             if (filter !== 'all') {
                 url += `?status=${filter}`;
@@ -201,66 +216,63 @@ document.addEventListener('DOMContentLoaded', () => {
                 headers: { 'x-admin-key': ADMIN_KEY }
             });
             
-            let orders = [];
-            
             if (response.ok) {
                 const data = await response.json();
                 orders = data.orders || [];
                 state.orders = orders;
-            } else {
-                throw new Error('API error');
+                console.log('Loaded orders from API:', orders.length);
             }
-            
-            if (orders.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; padding: 2rem;">No orders found</td></tr>';
-                return;
-            }
-            
-            tbody.innerHTML = orders.map(order => `
-                <tr>
-                    <td><strong>${order.id}</strong></td>
-                    <td>${order.first_name} ${order.last_name}</td>
-                    <td>${order.email}</td>
-                    <td>${new Date(order.created_at).toLocaleDateString()}</td>
-                    <td>${order.items?.length || 0}</td>
-                    <td>$${order.total}</td>
-                    <td><span class="status-badge ${order.status}">${order.status}</span></td>
-                    <td>
-                        <button class="btn-action" onclick="viewOrder('${order.id}')">View</button>
-                        <button class="btn-action" onclick="updateOrderStatus('${order.id}')">Update</button>
-                    </td>
-                </tr>
-            `).join('');
-        } catch (error) {
-            console.log('API not available, using localStorage');
-            // Fallback to localStorage
-            const orders = JSON.parse(localStorage.getItem('orders') || '[]');
-            let filteredOrders = orders;
-            if (filter !== 'all') {
-                filteredOrders = orders.filter(o => o.status === filter);
-            }
-            
-            if (filteredOrders.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; padding: 2rem;">No orders found</td></tr>';
-                return;
-            }
-            
-            tbody.innerHTML = filteredOrders.map(order => `
-                <tr>
-                    <td><strong>${order.id}</strong></td>
-                    <td>${order.firstName} ${order.lastName}</td>
-                    <td>${order.email}</td>
-                    <td>${new Date(order.date).toLocaleDateString()}</td>
-                    <td>${order.items?.length || 0}</td>
-                    <td>$${order.total}</td>
-                    <td><span class="status-badge ${order.status}">${order.status}</span></td>
-                    <td>
-                        <button class="btn-action" onclick="viewOrder('${order.id}')">View</button>
-                        <button class="btn-action" onclick="updateOrderStatus('${order.id}')">Update</button>
-                    </td>
-                </tr>
-            `).join('');
+        } catch (apiError) {
+            console.log('API not available:', apiError);
         }
+        
+        // Always ALSO load from localStorage
+        try {
+            const localOrders = JSON.parse(localStorage.getItem('orders') || '[]');
+            console.log('Loaded orders from localStorage:', localOrders.length);
+            
+            // If no API orders, use localStorage
+            if (orders.length === 0) {
+                orders = localOrders;
+                state.orders = orders;
+            }
+        } catch (e) {
+            console.error('Error reading localStorage:', e);
+        }
+        
+        // Apply filter
+        let filteredOrders = orders;
+        if (filter !== 'all') {
+            filteredOrders = orders.filter(o => o.status === filter);
+        }
+        
+        if (filteredOrders.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; padding: 2rem;">No orders found</td></tr>';
+            return;
+        }
+        
+        tbody.innerHTML = filteredOrders.map(order => {
+            // Handle both API format (snake_case) and localStorage format (camelCase)
+            const firstName = order.first_name || order.firstName;
+            const lastName = order.last_name || order.lastName;
+            const date = order.created_at || order.date;
+            
+            return `
+                <tr>
+                    <td><strong>${order.id}</strong></td>
+                    <td>${firstName} ${lastName}</td>
+                    <td>${order.email}</td>
+                    <td>${new Date(date).toLocaleDateString()}</td>
+                    <td>${order.items?.length || 0}</td>
+                    <td>$${order.total}</td>
+                    <td><span class="status-badge ${order.status}">${order.status}</span></td>
+                    <td>
+                        <button class="btn-action" onclick="viewOrder('${order.id}')">View</button>
+                        <button class="btn-action" onclick="updateOrderStatus('${order.id}')">Update</button>
+                    </td>
+                </tr>
+            `;
+        }).join('');
     }
 
     function loadProducts() {
