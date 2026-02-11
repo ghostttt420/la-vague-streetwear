@@ -609,3 +609,26 @@ document.addEventListener('DOMContentLoaded', () => {
 
     init();
 });
+
+// DEBUG: Direct API test function (same as debug page)
+window.testAdminAPI = async function() {
+    console.log('=== DIRECT API TEST ===');
+    const API_URL = window.location.hostname === 'localhost' 
+        ? 'http://localhost:3000/api' 
+        : 'https://la-vague-api.onrender.com/api';
+    const ADMIN_KEY = 'lavague2024';
+    
+    try {
+        const url = `${API_URL}/admin/orders?key=${ADMIN_KEY}`;
+        console.log('Testing URL:', url);
+        const response = await fetch(url);
+        console.log('Response status:', response.status);
+        const data = await response.json();
+        console.log('Response data:', data);
+        alert(`API Test: Found ${data.orders?.length || 0} orders\n\nFirst order: ${data.orders?.[0]?.id || 'None'}`);
+        return data;
+    } catch (e) {
+        console.error('API test failed:', e);
+        alert('API test failed: ' + e.message);
+    }
+};
