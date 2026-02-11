@@ -20,7 +20,7 @@
     "test": "vitest",
     "test:ui": "vitest --ui",
     "test:e2e": "playwright test",
-    "prepare": "husky"
+    "prepare": "node scripts/setup-husky.js"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",
