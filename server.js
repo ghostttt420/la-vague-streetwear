@@ -825,6 +825,12 @@ app.get('/api/admin/products', verifyAdminToken, asyncHandler(async (req, res) =
     res.json({ success: true, products });
 }));
 
+// Get product stats (MUST come before /:id route)
+app.get('/api/admin/products/stats', verifyAdminToken, asyncHandler(async (req, res) => {
+    const stats = await productService.getStats();
+    res.json({ success: true, stats });
+}));
+
 // Get single product
 app.get('/api/admin/products/:id', verifyAdminToken, asyncHandler(async (req, res) => {
     const product = await productService.getById(req.params.id);
@@ -890,16 +896,27 @@ app.delete('/api/admin/products/:id', verifyAdminToken, asyncHandler(async (req,
     console.log(`[PRODUCT] Deleted: ${req.params.id}`);
     res.json({ success: true, ...result });
 }));
-
-// Get product stats
-app.get('/api/admin/products/stats', verifyAdminToken, asyncHandler(async (req, res) => {
-    const stats = await productService.getStats();
     res.json({ success: true, stats });
 }));
 
 // ==========================================
 // INVENTORY MANAGEMENT (Admin Only)
 // ==========================================
+
+// Get low stock items (MUST come before /:productId route)
+app.get('/api/admin/inventory/low-stock', verifyAdminToken, asyncHandler(async (req, res) => {
+    const threshold = parseInt(req.query.threshold) || 5;
+    const lowStock = await inventoryService.getLowStock(threshold);
+    res.json({ success: true, lowStock, threshold });
+}));
+
+// Release reservation (for cancelled orders)
+app.post('/api/admin/inventory/release/:orderId', verifyAdminToken, asyncHandler(async (req, res) => {
+    const { orderId } = req.params;
+    await inventoryService.cancelReservation(orderId);
+    console.log(`[INVENTORY] Released reservation for order ${orderId}`);
+    res.json({ success: true, message: 'Reservation released' });
+}));
 
 // Get stock for a product variant
 app.get('/api/admin/inventory/:productId', verifyAdminToken, asyncHandler(async (req, res) => {
@@ -926,21 +943,6 @@ app.post('/api/admin/inventory/:productId', verifyAdminToken, asyncHandler(async
     const result = await inventoryService.updateStock(productId, color, size, quantity);
     console.log(`[INVENTORY] Updated stock for ${productId} (${color}/${size}): ${quantity}`);
     res.json({ success: true, ...result });
-}));
-
-// Get low stock items
-app.get('/api/admin/inventory/low-stock', verifyAdminToken, asyncHandler(async (req, res) => {
-    const threshold = parseInt(req.query.threshold) || 5;
-    const lowStock = await inventoryService.getLowStock(threshold);
-    res.json({ success: true, lowStock, threshold });
-}));
-
-// Release reservation (for cancelled orders)
-app.post('/api/admin/inventory/release/:orderId', verifyAdminToken, asyncHandler(async (req, res) => {
-    const { orderId } = req.params;
-    await inventoryService.cancelReservation(orderId);
-    console.log(`[INVENTORY] Released reservation for order ${orderId}`);
-    res.json({ success: true, message: 'Reservation released' });
 }));
 
 // Check stock availability (public endpoint)
