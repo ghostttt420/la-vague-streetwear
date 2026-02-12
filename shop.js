@@ -133,6 +133,7 @@ document.addEventListener('DOMContentLoaded', () => {
         quickViewOverlay: document.getElementById('quickViewOverlay'),
         quickViewClose: document.getElementById('quickViewClose'),
         quickViewContent: document.getElementById('quickViewContent'),
+        pageTransitionOverlay: document.getElementById('pageTransitionOverlay'),
         sizeGuideModal: document.getElementById('sizeGuideModal'),
         sizeGuideOverlay: document.getElementById('sizeGuideOverlay'),
         sizeGuideClose: document.getElementById('sizeGuideClose'),
@@ -526,27 +527,44 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     window.addToCartFromQuickView = async function() {
-        const product = state.quickViewProduct;
-        
-        // Check inventory if using API
-        if (!state.usingStaticData) {
-            const stockCheck = await ShopAPI.checkStock(product.id, state.selectedColor, state.selectedSize);
-            if (!stockCheck.inStock || stockCheck.available < state.selectedQuantity) {
-                showToast(`Only ${stockCheck.available} items available in this variant`, 'error');
+        try {
+            const product = state.quickViewProduct;
+            if (!product) {
+                console.error('[addToCartFromQuickView] No product in quick view');
+                showToast('Error: Product not found', 'error');
                 return;
             }
+            
+            console.log('[addToCartFromQuickView] Adding to cart:', product.name);
+            
+            // Check inventory if using API
+            if (!state.usingStaticData) {
+                const stockCheck = await ShopAPI.checkStock(product.id, state.selectedColor, state.selectedSize);
+                if (!stockCheck.inStock || stockCheck.available < state.selectedQuantity) {
+                    showToast(`Only ${stockCheck.available} items available in this variant`, 'error');
+                    return;
+                }
+            }
+            
+            // Get image safely
+            const image = product.images?.[0]?.src || 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100"><rect fill="%23333" width="100" height="100"/></svg>';
+            
+            CartState.addToCart({
+                id: product.id,
+                name: product.name,
+                price: product.price,
+                image: image,
+                color: state.selectedColor,
+                size: state.selectedSize,
+                quantity: state.selectedQuantity
+            });
+            
+            showToast(`${product.name} added to cart`, 'success');
+            closeQuickView();
+        } catch (error) {
+            console.error('[addToCartFromQuickView] Error:', error);
+            showToast('Failed to add to cart', 'error');
         }
-        
-        addToCart({
-            id: product.id,
-            name: product.name,
-            price: product.price,
-            image: product.images[0].src,
-            color: state.selectedColor,
-            size: state.selectedSize,
-            quantity: state.selectedQuantity
-        });
-        closeQuickView();
     };
 
     let quickViewOpening = false;
@@ -748,7 +766,15 @@ document.addEventListener('DOMContentLoaded', () => {
     // NAVIGATION
     // ==========================================
     window.openProductPage = function(slug) {
-        window.location.href = `product.html?slug=${slug}`;
+        // Show skeleton loading overlay
+        if (elements.pageTransitionOverlay) {
+            elements.pageTransitionOverlay.classList.add('active');
+        }
+        
+        // Small delay to allow skeleton to render before navigation
+        setTimeout(() => {
+            window.location.href = `product.html?slug=${slug}`;
+        }, 100);
     };
 
     function bindEvents() {

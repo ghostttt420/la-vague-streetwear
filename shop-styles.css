@@ -533,6 +533,115 @@
     100% { background-position: -200% 0; }
 }
 
+/* Page Transition Skeleton Overlay */
+.page-transition-overlay {
+    position: fixed;
+    inset: 0;
+    background: var(--color-bg);
+    z-index: 9999;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.2s ease, visibility 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+}
+
+.page-transition-overlay.active {
+    opacity: 1;
+    visibility: visible;
+}
+
+.page-transition-content {
+    width: 100%;
+    max-width: 1200px;
+}
+
+.page-transition-skeleton {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 4rem;
+    align-items: start;
+}
+
+.page-skeleton-image {
+    aspect-ratio: 3/4;
+    background: linear-gradient(90deg, var(--color-bg-secondary) 25%, var(--color-border) 50%, var(--color-bg-secondary) 75%);
+    background-size: 200% 100%;
+    animation: skeleton-loading 1.5s infinite;
+    border-radius: var(--radius);
+}
+
+.page-skeleton-details {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    padding-top: 2rem;
+}
+
+.page-skeleton-line {
+    height: 20px;
+    background: linear-gradient(90deg, var(--color-bg-secondary) 25%, var(--color-border) 50%, var(--color-bg-secondary) 75%);
+    background-size: 200% 100%;
+    animation: skeleton-loading 1.5s infinite;
+    border-radius: 4px;
+}
+
+.page-skeleton-title {
+    height: 40px;
+    width: 80%;
+}
+
+.page-skeleton-price {
+    height: 28px;
+    width: 120px;
+}
+
+.page-skeleton-desc {
+    height: 16px;
+    width: 100%;
+}
+
+.page-skeleton-desc-short {
+    height: 16px;
+    width: 60%;
+}
+
+.page-skeleton-options {
+    height: 80px;
+    background: linear-gradient(90deg, var(--color-bg-secondary) 25%, var(--color-border) 50%, var(--color-bg-secondary) 75%);
+    background-size: 200% 100%;
+    animation: skeleton-loading 1.5s infinite;
+    border-radius: var(--radius);
+    margin-top: 1rem;
+}
+
+.page-skeleton-button {
+    height: 56px;
+    width: 200px;
+    background: linear-gradient(90deg, var(--color-bg-secondary) 25%, var(--color-border) 50%, var(--color-bg-secondary) 75%);
+    background-size: 200% 100%;
+    animation: skeleton-loading 1.5s infinite;
+    border-radius: var(--radius);
+    margin-top: 1rem;
+}
+
+@media (max-width: 768px) {
+    .page-transition-skeleton {
+        grid-template-columns: 1fr;
+        gap: 2rem;
+    }
+    
+    .page-skeleton-image {
+        aspect-ratio: 4/3;
+    }
+    
+    .page-skeleton-details {
+        padding-top: 0;
+    }
+}
+
 /* Empty State */
 .empty-state {
     text-align: center;
