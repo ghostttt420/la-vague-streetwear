@@ -1036,6 +1036,11 @@ app.post('/api/admin/products',
     upload.array('images', 5),
     asyncHandler(async (req, res) => {
         try {
+            // Debug logging
+            console.log('[PRODUCT CREATE] Request received');
+            console.log('[PRODUCT CREATE] Files received:', req.files?.length || 0);
+            console.log('[PRODUCT CREATE] File details:', req.files?.map(f => ({ name: f.originalname, size: f.size, mimetype: f.mimetype })));
+            
             // Validate and sanitize price - ensure it's a valid number
             const price = parseInt(req.body.price, 10);
             if (isNaN(price) || price <= 0) {
@@ -1070,6 +1075,7 @@ app.post('/api/admin/products',
             
             const product = await productService.create(productData, req.files);
             console.log(`[PRODUCT] Created: ${product.id} - ${product.name}`);
+            console.log(`[PRODUCT] Images:`, product.images);
             res.status(201).json({ success: true, product });
         } catch (error) {
             console.error('[PRODUCT] Create error:', error.message);

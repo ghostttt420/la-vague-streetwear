@@ -102,12 +102,22 @@ export async function uploadImage(fileBuffer, folder = 'products', publicId = nu
  * @returns {Promise<Array>} Array of upload results
  */
 export async function uploadMultipleImages(files, folder = 'products') {
+    console.log(`[CLOUDINARY] Uploading ${files.length} images to folder: ${folder}`);
+    console.log(`[CLOUDINARY] Config status:`, { 
+        hasConfig: hasCloudinaryConfig,
+        cloudName: process.env.CLOUDINARY_CLOUD_NAME 
+    });
+    
     const uploadPromises = files.map(async (file, index) => {
         const publicId = `${Date.now()}_${index}`;
+        console.log(`[CLOUDINARY] Uploading file ${index}: ${file.originalname}, size: ${file.buffer?.length} bytes`);
         try {
-            return await uploadImage(file.buffer, folder, publicId);
+            const result = await uploadImage(file.buffer, folder, publicId);
+            console.log(`[CLOUDINARY] File ${index} uploaded successfully:`, result.secure_url?.substring(0, 80));
+            return result;
         } catch (error) {
             console.error(`[CLOUDINARY] Failed to upload image ${index}:`, error.message);
+            console.error(`[CLOUDINARY] Error details:`, error);
             // Return inline SVG placeholder on individual failure
             return {
                 secure_url: generatePlaceholder(`Image ${index + 1}`),
