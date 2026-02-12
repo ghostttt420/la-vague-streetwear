@@ -579,6 +579,7 @@ window.updateOrderStatus = async function(orderId) {
     const nextStatus = statuses[(currentIndex + 1) % statuses.length];
     
     try {
+        console.log(`Updating order ${orderId} to status: ${nextStatus}`);
         await fetchAPI(`/admin/orders/${orderId}/status`, {
             method: 'POST',
             body: JSON.stringify({ status: nextStatus })
@@ -587,7 +588,8 @@ window.updateOrderStatus = async function(orderId) {
         showToast(`Order ${orderId} updated to ${nextStatus}`, 'success');
         loadOrders();
     } catch (error) {
-        showToast('Failed to update order', 'error');
+        console.error('Update order error:', error);
+        showToast(`Failed to update order: ${error.message}`, 'error');
     }
 };
 
