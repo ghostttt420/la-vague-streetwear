@@ -395,10 +395,13 @@ export class ProductService {
             result = { rows: [result] };
         }
 
-        return {
-            totalProducts: parseInt(result.rows[0].total),
-            newLast30Days: parseInt(result.rows[0].new_last_30_days)
+        const stats = {
+            totalProducts: parseInt(result.rows[0].total) || 0,
+            newLast30Days: parseInt(result.rows[0].new_last_30_days) || 0
         };
+        
+        console.log('[PRODUCT STATS]', stats);
+        return stats;
     }
 }
 

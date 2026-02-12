@@ -799,14 +799,18 @@ app.get('/api/admin/stats', verifyAdminToken, asyncHandler(async (req, res) => {
         return { ...o, shippingAddress, items };
     });
     
+    const stats = {
+        totalOrders: parseInt(totalOrders.rows[0].count) || 0,
+        pendingOrders: parseInt(pendingOrders.rows[0].count) || 0,
+        totalRevenue: parseInt(totalRevenue.rows[0].sum || totalRevenue.rows[0].coalesce || 0),
+        recentOrders
+    };
+    
+    console.log('[ADMIN STATS]', stats);
+    
     res.json({
         success: true,
-        stats: {
-            totalOrders: parseInt(totalOrders.rows[0].count),
-            pendingOrders: parseInt(pendingOrders.rows[0].count),
-            totalRevenue: parseInt(totalRevenue.rows[0].sum || totalRevenue.rows[0].coalesce),
-            recentOrders
-        }
+        stats
     });
 }));
 

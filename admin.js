@@ -239,11 +239,25 @@ async function loadStats() {
             fetchAPI('/admin/products/stats')
         ]);
         
-        state.stats = { ...orderStats.stats, ...productStats.stats };
+        console.log('Order stats:', orderStats);
+        console.log('Product stats:', productStats);
+        
+        // Handle both response structures
+        const orderData = orderStats.stats || orderStats;
+        const productData = productStats.stats || productStats;
+        
+        state.stats = { 
+            totalOrders: orderData.totalOrders || orderData.total_orders || 0,
+            pendingOrders: orderData.pendingOrders || orderData.pending_orders || 0,
+            totalRevenue: orderData.totalRevenue || orderData.total_revenue || 0,
+            totalProducts: productData.totalProducts || productData.total_products || 0
+        };
+        
+        console.log('Combined stats:', state.stats);
         
         elements.statRevenue.textContent = `$${(state.stats.totalRevenue || 0).toLocaleString()}`;
         elements.statOrders.textContent = (state.stats.totalOrders || 0).toLocaleString();
-        elements.statProducts.textContent = (productStats.stats.totalProducts || 0).toLocaleString();
+        elements.statProducts.textContent = (state.stats.totalProducts || 0).toLocaleString();
         elements.statPending.textContent = (state.stats.pendingOrders || 0).toLocaleString();
         elements.ordersCount.textContent = (state.stats.pendingOrders || 0).toString();
     } catch (error) {
