@@ -958,15 +958,23 @@ async function fetchAPI(endpoint, options = {}) {
         config.body = JSON.stringify(config.body);
     }
     
+    console.log(`[API] ${config.method || 'GET'} ${endpoint}`, config.body);
+    
     const response = await fetch(url, config);
     const data = await response.json();
+    
+    console.log(`[API] Response ${response.status}:`, data);
     
     if (!response.ok) {
         if (response.status === 401) {
             handleLogout();
             throw new Error('Session expired. Please login again.');
         }
-        throw new Error(data.error || 'Request failed');
+        // Include validation details in error
+        const errorMsg = data.details ? 
+            `${data.error}: ${data.details.map(d => `${d.field} - ${d.message}`).join(', ')}` :
+            (data.error || 'Request failed');
+        throw new Error(errorMsg);
     }
     
     return data;
