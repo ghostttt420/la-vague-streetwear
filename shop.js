@@ -397,7 +397,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function escapeJs(str) {
         if (!str) return '';
         return String(str)
-            .replace(/\/g, '\\\\')
+            .replace(/\\/g, '\\\\')
             .replace(/'/g, "\\'")
             .replace(/"/g, '\\"')
             .replace(/\n/g, '\\n')
