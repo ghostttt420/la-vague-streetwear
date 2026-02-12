@@ -29,6 +29,15 @@ if (hasCloudinaryConfig) {
     console.warn('[CLOUDINARY] Configuration missing - image uploads will use placeholder URLs');
 }
 
+// Generate a simple inline SVG placeholder (no external requests)
+function generatePlaceholder(text = 'Product Image') {
+    const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="800" height="1000" viewBox="0 0 800 1000">
+        <rect width="800" height="1000" fill="#1f2937"/>
+        <text x="50%" y="50%" font-family="sans-serif" font-size="32" fill="#9ca3af" text-anchor="middle" dy=".3em">${text}</text>
+    </svg>`;
+    return `data:image/svg+xml;base64,${Buffer.from(svg).toString('base64')}`;
+}
+
 /**
  * Upload an image buffer to Cloudinary
  * @param {Buffer} fileBuffer - The file buffer from multer
@@ -41,7 +50,7 @@ export async function uploadImage(fileBuffer, folder = 'products', publicId = nu
     if (!hasCloudinaryConfig) {
         console.warn('[CLOUDINARY] Not configured, returning placeholder URL');
         return {
-            secure_url: `https://via.placeholder.com/800x1000/333/fff?text=Product+Image`,
+            secure_url: generatePlaceholder('Product Image'),
             public_id: `placeholder-${Date.now()}`
         };
     }
@@ -50,7 +59,7 @@ export async function uploadImage(fileBuffer, folder = 'products', publicId = nu
     if (!cloudinary.config().cloud_name) {
         console.warn('[CLOUDINARY] Cloud name not set, returning placeholder URL');
         return {
-            secure_url: `https://via.placeholder.com/800x1000/333/fff?text=Product+Image`,
+            secure_url: generatePlaceholder('Product Image'),
             public_id: `placeholder-${Date.now()}`
         };
     }
@@ -99,9 +108,9 @@ export async function uploadMultipleImages(files, folder = 'products') {
             return await uploadImage(file.buffer, folder, publicId);
         } catch (error) {
             console.error(`[CLOUDINARY] Failed to upload image ${index}:`, error.message);
-            // Return placeholder on individual failure
+            // Return inline SVG placeholder on individual failure
             return {
-                secure_url: `https://via.placeholder.com/800x1000/333/fff?text=Image+${index + 1}`,
+                secure_url: generatePlaceholder(`Image ${index + 1}`),
                 public_id: `placeholder-${Date.now()}-${index}`
             };
         }
