@@ -422,108 +422,6 @@ app.post('/api/orders', orderLimiter, async (req, res) => {
     }
 });
 
-// Get orders (admin)
-app.get('/api/admin/orders', async (req, res) => {
-    const adminKey = req.query.key;
-    console.log(`[ADMIN] Orders request - Key provided: ${adminKey ? 'YES' : 'NO'}, Expected: ${process.env.ADMIN_KEY ? 'SET' : 'NOT SET'}`);
-    
-    if (adminKey !== process.env.ADMIN_KEY) {
-        console.log('[ADMIN] Unauthorized - key mismatch');
-        return res.status(401).json({ success: false, error: 'Unauthorized' });
-    }
-    
-    try {
-        const result = await query('SELECT * FROM orders ORDER BY created_at DESC');
-        console.log(`[ADMIN] Found ${result.rows.length} orders`);
-        
-        const orders = result.rows.map(o => {
-            // PostgreSQL pg driver auto-parses JSON, SQLite returns strings
-            const shippingAddress = typeof o.shipping_address === 'string' 
-                ? JSON.parse(o.shipping_address || '{}') 
-                : (o.shipping_address || {});
-            const items = typeof o.items === 'string' 
-                ? JSON.parse(o.items || '[]') 
-                : (o.items || []);
-            return { ...o, shippingAddress, items };
-        });
-        res.json({ success: true, orders });
-    } catch (error) {
-        console.error('[ADMIN] Error fetching orders:', error);
-        res.status(500).json({ success: false, error: 'Failed to fetch orders' });
-    }
-});
-
-// Update order status (admin)
-app.post('/api/admin/orders/:id/status', async (req, res) => {
-    const adminKey = req.query.key;
-    if (adminKey !== process.env.ADMIN_KEY) {
-        return res.status(401).json({ success: false, error: 'Unauthorized' });
-    }
-    
-    try {
-        const { status } = req.body;
-        if (USE_POSTGRES) {
-            await db.query('UPDATE orders SET order_status = $1, updated_at = CURRENT_TIMESTAMP WHERE id = $2', 
-                [status, req.params.id]);
-        } else {
-            db.prepare('UPDATE orders SET order_status = ?, updated_at = datetime("now") WHERE id = ?')
-                .run(status, req.params.id);
-        }
-        res.json({ success: true });
-    } catch (error) {
-        console.error('Error updating order:', error);
-        res.status(500).json({ success: false, error: 'Failed to update order' });
-    }
-});
-
-// Get dashboard stats (admin)
-app.get('/api/admin/stats', async (req, res) => {
-    const adminKey = req.query.key;
-    if (adminKey !== process.env.ADMIN_KEY) {
-        return res.status(401).json({ success: false, error: 'Unauthorized' });
-    }
-    
-    try {
-        let totalOrders, pendingOrders, totalRevenue, recentOrdersResult;
-        
-        if (USE_POSTGRES) {
-            totalOrders = await db.query('SELECT COUNT(*) FROM orders');
-            pendingOrders = await db.query("SELECT COUNT(*) FROM orders WHERE order_status = 'pending'");
-            totalRevenue = await db.query("SELECT COALESCE(SUM(total), 0) FROM orders WHERE payment_status = 'completed'");
-            recentOrdersResult = await db.query('SELECT * FROM orders ORDER BY created_at DESC LIMIT 5');
-        } else {
-            totalOrders = { rows: [{ count: db.prepare('SELECT COUNT(*) as count FROM orders').get().count }] };
-            pendingOrders = { rows: [{ count: db.prepare("SELECT COUNT(*) as count FROM orders WHERE order_status = 'pending'").get().count }] };
-            totalRevenue = { rows: [{ sum: db.prepare("SELECT COALESCE(SUM(total), 0) as sum FROM orders WHERE payment_status = 'completed'").get().sum }] };
-            recentOrdersResult = { rows: db.prepare('SELECT * FROM orders ORDER BY created_at DESC LIMIT 5').all() };
-        }
-        
-        const recentOrders = recentOrdersResult.rows.map(o => {
-            // PostgreSQL pg driver auto-parses JSON, SQLite returns strings
-            const shippingAddress = typeof o.shipping_address === 'string' 
-                ? JSON.parse(o.shipping_address || '{}') 
-                : (o.shipping_address || {});
-            const items = typeof o.items === 'string' 
-                ? JSON.parse(o.items || '[]') 
-                : (o.items || []);
-            return { ...o, shippingAddress, items };
-        });
-        
-        res.json({
-            success: true,
-            stats: {
-                totalOrders: parseInt(totalOrders.rows[0].count),
-                pendingOrders: parseInt(pendingOrders.rows[0].count),
-                totalRevenue: parseInt(totalRevenue.rows[0].sum || totalRevenue.rows[0].coalesce),
-                recentOrders
-            }
-        });
-    } catch (error) {
-        console.error('Error fetching stats:', error);
-        res.status(500).json({ success: false, error: 'Failed to fetch stats' });
-    }
-});
-
 // Test database connection endpoint
 app.get('/api/db-test', async (req, res) => {
     try {
@@ -808,7 +706,7 @@ async function startServer() {
     console.log('========================================');
     console.log(`🚀 Server running on port ${PORT}`);
     console.log(`📊 Database: ${USE_POSTGRES ? 'PostgreSQL' : 'SQLite'}`);
-    console.log(`🔑 ADMIN_KEY: ${process.env.ADMIN_KEY ? 'SET (' + process.env.ADMIN_KEY.substring(0, 3) + '...)' : 'NOT SET - ADMIN WILL FAIL!'}`);
+    console.log(`🔑 ADMIN_PASSWORD: ${process.env.ADMIN_PASSWORD ? 'SET' : 'NOT SET - ADMIN LOGIN WILL FAIL!'}`);
     console.log(`🔗 FRONTEND_URL: ${process.env.FRONTEND_URL || 'not set'}`);
     console.log('========================================');
     
