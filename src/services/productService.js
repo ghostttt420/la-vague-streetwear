@@ -150,6 +150,12 @@ export class ProductService {
             badge = null
         } = productData;
 
+        // Validate and sanitize price
+        const sanitizedPrice = parseInt(price, 10);
+        if (isNaN(sanitizedPrice) || sanitizedPrice <= 0) {
+            throw new Error('Invalid price: must be a positive number');
+        }
+
         const id = `lv-${uuidv4().slice(0, 8)}`;
         const slug = await this.ensureUniqueSlug(this.generateSlug(name));
 
@@ -163,13 +169,22 @@ export class ProductService {
             }));
         }
 
+        // Sanitize compareAtPrice
+        let sanitizedCompareAtPrice = null;
+        if (compareAtPrice) {
+            const parsed = parseInt(compareAtPrice, 10);
+            if (!isNaN(parsed) && parsed > 0) {
+                sanitizedCompareAtPrice = parsed;
+            }
+        }
+
         const product = {
             id,
             name,
             slug,
             category,
-            price: parseInt(price),
-            compare_at_price: compareAtPrice ? parseInt(compareAtPrice) : null,
+            price: sanitizedPrice,
+            compare_at_price: sanitizedCompareAtPrice,
             description,
             features: JSON.stringify(features),
             images: JSON.stringify(images),

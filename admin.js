@@ -926,9 +926,23 @@ elements.saveProductBtn.addEventListener('click', async () => {
         showToast('Category is required', 'error');
         return;
     }
-    if (!elements.productPrice.value || parseInt(elements.productPrice.value) <= 0) {
-        showToast('Valid price is required', 'error');
+    
+    // Parse and validate price
+    const priceValue = elements.productPrice.value.replace(/[$,]/g, '').trim();
+    const price = parseInt(priceValue, 10);
+    if (!priceValue || isNaN(price) || price <= 0) {
+        showToast('Valid price is required (numbers only)', 'error');
         return;
+    }
+    
+    // Parse compare at price if provided
+    let compareAtPrice = null;
+    if (elements.productComparePrice.value) {
+        const compareValue = elements.productComparePrice.value.replace(/[$,]/g, '').trim();
+        const compareParsed = parseInt(compareValue, 10);
+        if (!isNaN(compareParsed) && compareParsed > 0) {
+            compareAtPrice = compareParsed;
+        }
     }
     
     // Build product data
@@ -941,8 +955,8 @@ elements.saveProductBtn.addEventListener('click', async () => {
     const productData = {
         name: elements.productName.value.trim(),
         category: elements.productCategory.value,
-        price: parseInt(elements.productPrice.value),
-        compareAtPrice: elements.productComparePrice.value ? parseInt(elements.productComparePrice.value) : null,
+        price: price,
+        compareAtPrice: compareAtPrice,
         badge: elements.productBadge.value || null,
         description: elements.productDescription.value.trim(),
         features: elements.productFeatures.value.split('\n').filter(f => f.trim()),

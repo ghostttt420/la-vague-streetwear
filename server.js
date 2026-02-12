@@ -1020,12 +1020,29 @@ app.post('/api/admin/products',
     upload.array('images', 5),
     asyncHandler(async (req, res) => {
         try {
+            // Validate and sanitize price - ensure it's a valid number
+            const price = parseInt(req.body.price, 10);
+            if (isNaN(price) || price <= 0) {
+                throw new Error('Invalid price: must be a positive number');
+            }
+            
             // Validate and truncate fields to prevent "value too long" errors
             const truncate = (str, maxLen) => str && str.length > maxLen ? str.substring(0, maxLen) : str;
+            
+            // Parse compareAtPrice safely
+            let compareAtPrice = null;
+            if (req.body.compareAtPrice) {
+                const parsed = parseInt(req.body.compareAtPrice, 10);
+                if (!isNaN(parsed) && parsed > 0) {
+                    compareAtPrice = parsed;
+                }
+            }
             
             const productData = {
                 ...req.body,
                 name: truncate(req.body.name, 200),
+                price: price,
+                compareAtPrice: compareAtPrice,
                 description: truncate(req.body.description, 5000),
                 features: JSON.parse(req.body.features || '[]'),
                 colors: JSON.parse(req.body.colors || '[]'),
