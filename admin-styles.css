@@ -754,6 +754,19 @@ textarea {
     color: var(--color-text-secondary);
 }
 
+/* Status Select in Orders Table */
+.status-select {
+    cursor: pointer;
+    font-size: 0.75rem;
+    padding: 0.375rem 0.5rem;
+    border-color: var(--color-border);
+    background-color: var(--color-surface);
+}
+
+.status-select:focus {
+    border-color: var(--color-primary);
+}
+
 /* Stock badges */
 .stock-badge {
     display: inline-flex;

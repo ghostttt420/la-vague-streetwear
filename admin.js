@@ -361,10 +361,20 @@ function renderOrdersTable(orders) {
                 <td>${formatDate(order.created_at || order.date)}</td>
                 <td>${items.length}</td>
                 <td>$${order.total || 0}</td>
-                <td><span class="status-badge ${status}">${status}</span></td>
+                <td>
+                    <select class="input input-sm status-select" 
+                            id="status-${order.id}" 
+                            style="min-width: 120px;">
+                        <option value="pending" ${status === 'pending' ? 'selected' : ''}>Pending</option>
+                        <option value="processing" ${status === 'processing' ? 'selected' : ''}>Processing</option>
+                        <option value="shipped" ${status === 'shipped' ? 'selected' : ''}>Shipped</option>
+                        <option value="delivered" ${status === 'delivered' ? 'selected' : ''}>Delivered</option>
+                        <option value="cancelled" ${status === 'cancelled' ? 'selected' : ''}>Cancelled</option>
+                    </select>
+                </td>
                 <td>
                     <button class="btn btn-sm btn-secondary" onclick="viewOrder('${order.id}')">View</button>
-                    <button class="btn btn-sm btn-primary" onclick="updateOrderStatus('${order.id}')">Update</button>
+                    <button class="btn btn-sm btn-primary" onclick="saveOrderStatus('${order.id}')">Save</button>
                 </td>
             </tr>
         `;
@@ -564,22 +574,19 @@ window.closeOrderModal = function() {
     elements.orderModal.style.display = 'none';
 };
 
-window.updateOrderStatus = async function(orderId) {
-    const statuses = ['pending', 'processing', 'shipped', 'delivered', 'cancelled'];
-    const order = state.orders.find(o => o.id === orderId);
-    if (!order) return;
+window.saveOrderStatus = async function(orderId) {
+    const statusSelect = document.getElementById(`status-${orderId}`);
+    if (!statusSelect) return;
     
-    const currentStatus = order.order_status || order.status || 'pending';
-    const currentIndex = statuses.indexOf(currentStatus);
-    const nextStatus = statuses[(currentIndex + 1) % statuses.length];
+    const newStatus = statusSelect.value;
     
     try {
         await fetchAPI(`/admin/orders/${orderId}/status`, {
             method: 'POST',
-            body: { status: nextStatus }
+            body: { status: newStatus }
         });
         
-        showToast(`Order ${orderId} updated to ${nextStatus}`, 'success');
+        showToast(`Order ${orderId} updated to ${newStatus}`, 'success');
         loadOrders();
     } catch (error) {
         console.error('Update order error:', error);
