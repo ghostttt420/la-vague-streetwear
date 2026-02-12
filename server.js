@@ -14,9 +14,11 @@ import { fileURLToPath } from 'url';
 import dotenv from 'dotenv';
 import crypto from 'crypto';
 import nodemailer from 'nodemailer';
+import multer from 'multer';
 
 // Import custom middleware and services
 import { InventoryService } from './src/services/inventory.js';
+import { ProductService } from './src/services/productService.js';
 import { 
     validateCreateOrder, 
     validateAdminLogin, 
@@ -34,9 +36,27 @@ dotenv.config();
 
 const app = express();
 
-// Initialize inventory service (will be set after DB connection)
+// Initialize services (will be set after DB connection)
 let inventoryService;
+let productService;
 const PORT = process.env.PORT || 3000;
+
+// Configure multer for memory storage
+const upload = multer({
+    storage: multer.memoryStorage(),
+    limits: {
+        fileSize: 5 * 1024 * 1024, // 5MB limit
+        files: 5 // Max 5 files
+    },
+    fileFilter: (req, file, cb) => {
+        // Accept only images
+        if (file.mimetype.startsWith('image/')) {
+            cb(null, true);
+        } else {
+            cb(new Error('Only image files are allowed'), false);
+        }
+    }
+});
 
 // ES module __dirname equivalent
 const __filename = fileURLToPath(import.meta.url);
@@ -336,8 +356,9 @@ async function initDatabase() {
     // Seed products if empty
     await seedProducts();
     
-    // Initialize inventory service
+    // Initialize services
     inventoryService = new InventoryService(db, USE_POSTGRES);
+    productService = new ProductService(db, USE_POSTGRES);
     
     // Start periodic cleanup of expired reservations (every 5 minutes)
     setInterval(() => {
@@ -790,6 +811,89 @@ app.get('/api/admin/stats', verifyAdminToken, asyncHandler(async (req, res) => {
 }));
 
 // ==========================================
+// PRODUCT MANAGEMENT (Admin Only)
+// ==========================================
+
+// Get all products (admin - with full details)
+app.get('/api/admin/products', verifyAdminToken, asyncHandler(async (req, res) => {
+    const { category, search, limit, offset } = req.query;
+    const products = await productService.getAll({ category, search, limit, offset });
+    res.json({ success: true, products });
+}));
+
+// Get single product
+app.get('/api/admin/products/:id', verifyAdminToken, asyncHandler(async (req, res) => {
+    const product = await productService.getById(req.params.id);
+    if (!product) {
+        throw new APIError('Product not found', 404, 'NOT_FOUND');
+    }
+    res.json({ success: true, product });
+}));
+
+// Create product with image upload
+app.post('/api/admin/products', 
+    verifyAdminToken, 
+    upload.array('images', 5),
+    asyncHandler(async (req, res) => {
+        const productData = {
+            ...req.body,
+            features: JSON.parse(req.body.features || '[]'),
+            colors: JSON.parse(req.body.colors || '[]'),
+            sizes: JSON.parse(req.body.sizes || '[]'),
+            inventory: JSON.parse(req.body.inventory || '{}'),
+            tags: JSON.parse(req.body.tags || '[]')
+        };
+        
+        const product = await productService.create(productData, req.files);
+        console.log(`[PRODUCT] Created: ${product.id} - ${product.name}`);
+        res.status(201).json({ success: true, product });
+    })
+);
+
+// Update product with image upload
+app.put('/api/admin/products/:id',
+    verifyAdminToken,
+    upload.array('images', 5),
+    asyncHandler(async (req, res) => {
+        const productData = {
+            ...req.body,
+            features: req.body.features ? JSON.parse(req.body.features) : undefined,
+            colors: req.body.colors ? JSON.parse(req.body.colors) : undefined,
+            sizes: req.body.sizes ? JSON.parse(req.body.sizes) : undefined,
+            inventory: req.body.inventory ? JSON.parse(req.body.inventory) : undefined,
+            tags: req.body.tags ? JSON.parse(req.body.tags) : undefined,
+            keepImages: req.body.keepImages ? JSON.parse(req.body.keepImages) : []
+        };
+        
+        const imagesToDelete = req.body.imagesToDelete 
+            ? JSON.parse(req.body.imagesToDelete) 
+            : [];
+        
+        const product = await productService.update(
+            req.params.id, 
+            productData, 
+            req.files, 
+            imagesToDelete
+        );
+        console.log(`[PRODUCT] Updated: ${product.id} - ${product.name}`);
+        res.json({ success: true, product });
+    })
+);
+
+// Delete product
+app.delete('/api/admin/products/:id', verifyAdminToken, asyncHandler(async (req, res) => {
+    const result = await productService.delete(req.params.id);
+    console.log(`[PRODUCT] Deleted: ${req.params.id}`);
+    res.json({ success: true, ...result });
+}));
+
+// Get product stats
+app.get('/api/admin/products/stats', verifyAdminToken, asyncHandler(async (req, res) => {
+    const stats = await productService.getStats();
+    res.json({ success: true, stats });
+}));
+
+// ==========================================
 // INVENTORY MANAGEMENT (Admin Only)
 // ==========================================
 
@@ -919,6 +1023,8 @@ async function startServer() {
     console.log(`🚀 Server running on port ${PORT}`);
     console.log(`📊 Database: ${USE_POSTGRES ? 'PostgreSQL' : 'SQLite'}`);
     console.log(`📦 Inventory: Stock tracking + Reservation system`);
+    console.log(`🖼️  Cloudinary: Image upload service`);
+    console.log(`🛍️  Products: Full CRUD with image management`);
     console.log(`🔑 ADMIN_PASSWORD: ${process.env.ADMIN_PASSWORD ? 'SET' : 'NOT SET - ADMIN LOGIN WILL FAIL!'}`);
     console.log(`🔗 FRONTEND_URL: ${process.env.FRONTEND_URL || 'not set'}`);
     console.log(`🛡️  Security: Helmet + Rate Limiting + Input Validation`);

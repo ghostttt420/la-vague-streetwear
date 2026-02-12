@@ -29,6 +29,12 @@ services:
             sync: false # Set manually
           - key: SMTP_PASS
             sync: false # Set manually
+          - key: CLOUDINARY_CLOUD_NAME
+            sync: false # Set manually in Render dashboard
+          - key: CLOUDINARY_API_KEY
+            sync: false # Set manually in Render dashboard
+          - key: CLOUDINARY_API_SECRET
+            sync: false # Set manually in Render dashboard
       healthCheckPath: /api/health
 
 databases:
