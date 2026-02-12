@@ -550,6 +550,256 @@ app.get('/api/db-test', async (req, res) => {
     }
 });
 
+// ==========================================
+// ADMIN AUTHENTICATION (Secure)
+// ==========================================
+
+// Admin login - returns a session token
+app.post('/api/admin/login', async (req, res) => {
+    const { password } = req.body;
+    
+    // Get admin password from environment variable
+    const adminPassword = process.env.ADMIN_PASSWORD;
+    
+    if (!adminPassword) {
+        console.error('[ADMIN] ADMIN_PASSWORD not set in environment');
+        return res.status(500).json({ success: false, error: 'Server configuration error' });
+    }
+    
+    if (password !== adminPassword) {
+        console.log('[ADMIN] Login failed - invalid password');
+        return res.status(401).json({ success: false, error: 'Invalid password' });
+    }
+    
+    // Generate a simple session token (in production, use JWT)
+    const token = require('crypto').randomBytes(32).toString('hex');
+    
+    // Store session in database
+    try {
+        const expiresAt = new Date();
+        expiresAt.setHours(expiresAt.getHours() + 24); // 24 hour expiry
+        
+        if (USE_POSTGRES) {
+            await db.query(
+                'INSERT INTO admin_sessions (session_key, expires_at) VALUES ($1, $2)',
+                [token, expiresAt]
+            );
+        } else {
+            db.prepare('INSERT INTO admin_sessions (session_key, expires_at) VALUES (?, ?)')
+                .run(token, expiresAt.toISOString());
+        }
+        
+        console.log('[ADMIN] Login successful, token generated');
+        res.json({ success: true, token });
+    } catch (error) {
+        console.error('[ADMIN] Session creation error:', error);
+        res.status(500).json({ success: false, error: 'Session creation failed' });
+    }
+});
+
+// Verify admin token middleware
+async function verifyAdminToken(req, res, next) {
+    const token = req.headers.authorization?.replace('Bearer ', '');
+    
+    if (!token) {
+        return res.status(401).json({ success: false, error: 'No token provided' });
+    }
+    
+    try {
+        let session;
+        
+        if (USE_POSTGRES) {
+            const result = await db.query(
+                'SELECT * FROM admin_sessions WHERE session_key = $1 AND expires_at > NOW()',
+                [token]
+            );
+            session = result.rows[0];
+        } else {
+            session = db.prepare(
+                'SELECT * FROM admin_sessions WHERE session_key = ? AND expires_at > datetime("now")'
+            ).get(token);
+        }
+        
+        if (!session) {
+            return res.status(401).json({ success: false, error: 'Invalid or expired token' });
+        }
+        
+        req.adminToken = token;
+        next();
+    } catch (error) {
+        console.error('[ADMIN] Token verification error:', error);
+        res.status(500).json({ success: false, error: 'Token verification failed' });
+    }
+}
+
+// Admin logout
+app.post('/api/admin/logout', verifyAdminToken, async (req, res) => {
+    try {
+        if (USE_POSTGRES) {
+            await db.query('DELETE FROM admin_sessions WHERE session_key = $1', [req.adminToken]);
+        } else {
+            db.prepare('DELETE FROM admin_sessions WHERE session_key = ?').run(req.adminToken);
+        }
+        
+        res.json({ success: true });
+    } catch (error) {
+        console.error('[ADMIN] Logout error:', error);
+        res.status(500).json({ success: false, error: 'Logout failed' });
+    }
+});
+
+// Update admin endpoints to use token instead of key query param
+app.get('/api/admin/orders', verifyAdminToken, async (req, res) => {
+    try {
+        const result = await query('SELECT * FROM orders ORDER BY created_at DESC');
+        console.log(`[ADMIN] Found ${result.rows.length} orders`);
+        
+        const orders = result.rows.map(o => {
+            const shippingAddress = typeof o.shipping_address === 'string' 
+                ? JSON.parse(o.shipping_address || '{}') 
+                : (o.shipping_address || {});
+            const items = typeof o.items === 'string' 
+                ? JSON.parse(o.items || '[]') 
+                : (o.items || []);
+            return { ...o, shippingAddress, items };
+        });
+        res.json({ success: true, orders });
+    } catch (error) {
+        console.error('[ADMIN] Error fetching orders:', error);
+        res.status(500).json({ success: false, error: 'Failed to fetch orders' });
+    }
+});
+
+app.post('/api/admin/orders/:id/status', verifyAdminToken, async (req, res) => {
+    try {
+        const { status } = req.body;
+        if (USE_POSTGRES) {
+            await db.query('UPDATE orders SET order_status = $1, updated_at = CURRENT_TIMESTAMP WHERE id = $2', 
+                [status, req.params.id]);
+        } else {
+            db.prepare('UPDATE orders SET order_status = ?, updated_at = datetime("now") WHERE id = ?')
+                .run(status, req.params.id);
+        }
+        res.json({ success: true });
+    } catch (error) {
+        console.error('Error updating order:', error);
+        res.status(500).json({ success: false, error: 'Failed to update order' });
+    }
+});
+
+app.get('/api/admin/stats', verifyAdminToken, async (req, res) => {
+    try {
+        let totalOrders, pendingOrders, totalRevenue, recentOrdersResult;
+        
+        if (USE_POSTGRES) {
+            totalOrders = await db.query('SELECT COUNT(*) FROM orders');
+            pendingOrders = await db.query("SELECT COUNT(*) FROM orders WHERE order_status = 'pending'");
+            totalRevenue = await db.query("SELECT COALESCE(SUM(total), 0) FROM orders WHERE payment_status = 'completed'");
+            recentOrdersResult = await db.query('SELECT * FROM orders ORDER BY created_at DESC LIMIT 5');
+        } else {
+            totalOrders = { rows: [{ count: db.prepare('SELECT COUNT(*) as count FROM orders').get().count }] };
+            pendingOrders = { rows: [{ count: db.prepare("SELECT COUNT(*) as count FROM orders WHERE order_status = 'pending'").get().count }] };
+            totalRevenue = { rows: [{ sum: db.prepare("SELECT COALESCE(SUM(total), 0) as sum FROM orders WHERE payment_status = 'completed'").get().sum }] };
+            recentOrdersResult = { rows: db.prepare('SELECT * FROM orders ORDER BY created_at DESC LIMIT 5').all() };
+        }
+        
+        const recentOrders = recentOrdersResult.rows.map(o => {
+            const shippingAddress = typeof o.shipping_address === 'string' 
+                ? JSON.parse(o.shipping_address || '{}') 
+                : (o.shipping_address || {});
+            const items = typeof o.items === 'string' 
+                ? JSON.parse(o.items || '[]') 
+                : (o.items || []);
+            return { ...o, shippingAddress, items };
+        });
+        
+        res.json({
+            success: true,
+            stats: {
+                totalOrders: parseInt(totalOrders.rows[0].count),
+                pendingOrders: parseInt(pendingOrders.rows[0].count),
+                totalRevenue: parseInt(totalRevenue.rows[0].sum || totalRevenue.rows[0].coalesce),
+                recentOrders
+            }
+        });
+    } catch (error) {
+        console.error('Error fetching stats:', error);
+        res.status(500).json({ success: false, error: 'Failed to fetch stats' });
+    }
+});
+
+// ==========================================
+// CONTACT FORM
+// ==========================================
+app.post('/api/contact', async (req, res) => {
+    const { name, email, subject, message } = req.body;
+    
+    // Validation
+    if (!name || !email || !message) {
+        return res.status(400).json({ 
+            success: false, 
+            error: 'Name, email, and message are required' 
+        });
+    }
+    
+    // Email validation regex
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+        return res.status(400).json({ 
+            success: false, 
+            error: 'Invalid email address' 
+        });
+    }
+    
+    try {
+        // Create transporter
+        const transporter = nodemailer.createTransporter({
+            host: process.env.SMTP_HOST,
+            port: parseInt(process.env.SMTP_PORT || '587'),
+            secure: false,
+            auth: {
+                user: process.env.SMTP_USER,
+                pass: process.env.SMTP_PASS
+            }
+        });
+        
+        // Send email
+        await transporter.sendMail({
+            from: `"LA VAGUE Contact Form" <${process.env.SMTP_USER}>`,
+            to: process.env.SMTP_USER, // Send to your own email
+            replyTo: email,
+            subject: `Contact Form: ${subject || 'New Message'}`,
+            text: `
+Name: ${name}
+Email: ${email}
+Subject: ${subject || 'N/A'}
+
+Message:
+${message}
+            `,
+            html: `
+<h3>New Contact Form Submission</h3>
+<p><strong>Name:</strong> ${name}</p>
+<p><strong>Email:</strong> ${email}</p>
+<p><strong>Subject:</strong> ${subject || 'N/A'}</p>
+<hr>
+<p><strong>Message:</strong></p>
+<p>${message.replace(/\n/g, '<br>')}</p>
+            `
+        });
+        
+        console.log(`[CONTACT] Email sent from ${email}`);
+        res.json({ success: true, message: 'Message sent successfully' });
+        
+    } catch (error) {
+        console.error('[CONTACT] Email error:', error);
+        res.status(500).json({ 
+            success: false, 
+            error: 'Failed to send message. Please try again later.' 
+        });
+    }
+});
+
 // Initialize and start server
 async function startServer() {
     await initDatabase();

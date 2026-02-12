@@ -1,5 +1,6 @@
 /**
  * LA VAGUE - Admin Panel JavaScript
+ * Secure version - credentials removed from client-side
  */
 
 // DEBUG - This should always show
@@ -8,13 +9,14 @@ console.log('Current URL:', window.location.href);
 console.log('localStorage orders:', localStorage.getItem('orders'));
 
 // ==========================================
-// CONFIG (Global scope for debug access)
+// CONFIG
 // ==========================================
-const ADMIN_PASSWORD = 'lavague2024'; // Change this in production!
-const ADMIN_KEY = 'lavague2024';
 const API_URL = window.location.hostname === 'localhost' 
     ? 'http://localhost:3000/api' 
     : 'https://la-vague-api.onrender.com/api';
+
+// Legacy support for debug functions
+const ADMIN_KEY = 'deprecated'; // Kept for backward compatibility in debug functions
 
 document.addEventListener('DOMContentLoaded', () => {
     console.log('=== DOM LOADED ===');
@@ -49,36 +51,65 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     // ==========================================
-    // AUTHENTICATION
+    // AUTHENTICATION (Secure - Server-Side)
     // ==========================================
     function checkAuth() {
-        const auth = sessionStorage.getItem('adminAuth');
-        if (auth === 'true') {
+        const token = sessionStorage.getItem('adminToken');
+        if (token) {
             state.isAuthenticated = true;
             showDashboard();
             loadDashboardData();
         }
     }
 
-    function handleLogin(e) {
+    async function handleLogin(e) {
         e.preventDefault();
         const password = document.getElementById('adminPassword').value;
         
-        if (password === ADMIN_PASSWORD) {
-            state.isAuthenticated = true;
-            sessionStorage.setItem('adminAuth', 'true');
-            showDashboard();
-            loadDashboardData();
-            showToast('Login successful', 'success');
-        } else {
-            showToast('Invalid password', 'error');
-            document.getElementById('adminPassword').value = '';
+        try {
+            const response = await fetch(`${API_URL}/admin/login`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ password })
+            });
+            
+            const data = await response.json();
+            
+            if (data.success) {
+                state.isAuthenticated = true;
+                sessionStorage.setItem('adminToken', data.token);
+                showDashboard();
+                loadDashboardData();
+                showToast('Login successful', 'success');
+            } else {
+                showToast(data.error || 'Invalid password', 'error');
+                document.getElementById('adminPassword').value = '';
+            }
+        } catch (error) {
+            console.error('Login error:', error);
+            showToast('Login failed. Please try again.', 'error');
         }
     }
 
-    function handleLogout() {
+    async function handleLogout() {
+        const token = sessionStorage.getItem('adminToken');
+        
+        if (token) {
+            try {
+                await fetch(`${API_URL}/admin/logout`, {
+                    method: 'POST',
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+            } catch (error) {
+                console.error('Logout error:', error);
+            }
+        }
+        
         state.isAuthenticated = false;
-        sessionStorage.removeItem('adminAuth');
+        sessionStorage.removeItem('adminToken');
         showLogin();
         showToast('Logged out', 'success');
     }
@@ -124,26 +155,41 @@ document.addEventListener('DOMContentLoaded', () => {
         console.log('Loading dashboard data...');
         console.log('localStorage orders:', localStorage.getItem('orders'));
         
+        const token = sessionStorage.getItem('adminToken');
+        if (!token) {
+            console.error('No admin token found');
+            handleLogout();
+            return;
+        }
+        
         try {
             // Try to fetch from API first
             let orders = [];
             let products = PRODUCTS || [];
             
             try {
-                const response = await fetch(`${API_URL}/admin/stats?key=${ADMIN_KEY}`);
+                const response = await fetch(`${API_URL}/admin/stats`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
                 
                 if (response.ok) {
                     const data = await response.json();
                     state.stats = data.stats;
                     
                     // Also fetch recent orders
-                    const ordersResponse = await fetch(`${API_URL}/admin/orders?key=${ADMIN_KEY}`);
+                    const ordersResponse = await fetch(`${API_URL}/admin/orders`, {
+                        headers: { 'Authorization': `Bearer ${token}` }
+                    });
                     
                     if (ordersResponse.ok) {
                         const ordersData = await ordersResponse.json();
                         orders = ordersData.orders || [];
                         console.log('Orders loaded from API:', orders.length);
                     }
+                } else if (response.status === 401) {
+                    // Token expired or invalid
+                    handleLogout();
+                    return;
                 } else {
                     const errorData = await response.json().catch(() => ({}));
                     console.error('API error:', response.status, errorData);
@@ -214,16 +260,24 @@ document.addEventListener('DOMContentLoaded', () => {
         const filter = document.getElementById('orderStatusFilter')?.value || 'all';
         console.log('Filter:', filter);
         console.log('API_URL:', API_URL);
-        console.log('ADMIN_KEY:', ADMIN_KEY ? 'SET' : 'NOT SET');
+        
+        const token = sessionStorage.getItem('adminToken');
+        if (!token) {
+            console.error('No admin token found');
+            handleLogout();
+            return;
+        }
         
         let orders = [];
         
         // Try API first
         try {
-            let url = `${API_URL}/admin/orders?key=${ADMIN_KEY}`;
+            let url = `${API_URL}/admin/orders`;
             console.log('Fetching from URL:', url);
             
-            const response = await fetch(url);
+            const response = await fetch(url, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
             console.log('Response status:', response.status);
             
             if (response.ok) {
@@ -232,6 +286,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 orders = data.orders || [];
                 state.orders = orders;
                 console.log('Loaded orders from API:', orders.length);
+            } else if (response.status === 401) {
+                handleLogout();
+                return;
             } else {
                 const errorText = await response.text();
                 console.error('API error:', response.status, errorText);
@@ -459,18 +516,28 @@ document.addEventListener('DOMContentLoaded', () => {
         const currentIndex = statuses.indexOf(currentStatus);
         const nextStatus = statuses[(currentIndex + 1) % statuses.length];
         
+        const token = sessionStorage.getItem('adminToken');
+        if (!token) {
+            handleLogout();
+            return;
+        }
+        
         try {
             // Try to update via API
-            const response = await fetch(`${API_URL}/admin/orders/${orderId}/status?key=${ADMIN_KEY}`, {
+            const response = await fetch(`${API_URL}/admin/orders/${orderId}/status`, {
                 method: 'POST',
                 headers: { 
-                    'Content-Type': 'application/json'
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
                 },
                 body: JSON.stringify({ status: nextStatus })
             });
             
             if (response.ok) {
                 showToast(`Order ${orderId} updated to ${nextStatus}`, 'success');
+            } else if (response.status === 401) {
+                handleLogout();
+                return;
             } else {
                 throw new Error('API update failed');
             }
@@ -614,15 +681,22 @@ document.addEventListener('DOMContentLoaded', () => {
     init();
 });
 
-// DEBUG: Direct API test function (same as debug page)
+// DEBUG: Direct API test function
 window.testAdminAPI = async function() {
     console.log('=== DIRECT API TEST ===');
-    // Uses global API_URL and ADMIN_KEY
+    
+    const token = sessionStorage.getItem('adminToken');
+    if (!token) {
+        alert('Not authenticated. Please login first.');
+        return;
+    }
     
     try {
-        const url = `${API_URL}/admin/orders?key=${ADMIN_KEY}`;
+        const url = `${API_URL}/admin/orders`;
         console.log('Testing URL:', url);
-        const response = await fetch(url);
+        const response = await fetch(url, {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
         console.log('Response status:', response.status);
         const data = await response.json();
         console.log('Response data:', data);

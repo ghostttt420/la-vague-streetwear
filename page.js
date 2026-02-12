@@ -218,6 +218,63 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // ==========================================
+    // CONTACT FORM
+    // ==========================================
+    function initContactForm() {
+        const contactForm = document.getElementById('contactForm');
+        if (!contactForm) return;
+        
+        contactForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const submitBtn = contactForm.querySelector('button[type="submit"]');
+            const originalText = submitBtn.textContent;
+            submitBtn.textContent = 'Sending...';
+            submitBtn.disabled = true;
+            
+            const formData = {
+                name: `${document.getElementById('firstName')?.value || ''} ${document.getElementById('lastName')?.value || ''}`.trim(),
+                email: document.getElementById('email')?.value,
+                subject: document.getElementById('subject')?.value,
+                message: document.getElementById('message')?.value
+            };
+            
+            // Add order number if provided
+            const orderNumber = document.getElementById('orderNumber')?.value;
+            if (orderNumber) {
+                formData.message = `Order Number: ${orderNumber}\n\n${formData.message}`;
+            }
+            
+            try {
+                const API_URL = window.location.hostname === 'localhost' 
+                    ? 'http://localhost:3000/api' 
+                    : 'https://la-vague-api.onrender.com/api';
+                
+                const response = await fetch(`${API_URL}/contact`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(formData)
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    showToast('Message sent successfully!', 'success');
+                    contactForm.reset();
+                } else {
+                    showToast(result.error || 'Failed to send message', 'error');
+                }
+            } catch (error) {
+                console.error('Contact form error:', error);
+                showToast('Failed to send message. Please try again.', 'error');
+            } finally {
+                submitBtn.textContent = originalText;
+                submitBtn.disabled = false;
+            }
+        });
+    }
+
+    // ==========================================
     // EVENTS
     // ==========================================
     function bindEvents() {
@@ -235,6 +292,9 @@ document.addEventListener('DOMContentLoaded', () => {
             clearTimeout(searchTimeout);
             searchTimeout = setTimeout(() => handleSearch(e.target.value), 300);
         });
+        
+        // Contact form
+        initContactForm();
         
         // Keyboard
         document.addEventListener('keydown', (e) => {
