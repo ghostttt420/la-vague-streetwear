@@ -3,6 +3,89 @@
    Modern, Bold, Timeless
    ============================================ */
 
+/* Currency Selector - matches nav design */
+.currency-selector {
+    position: relative;
+}
+
+.currency-selector select {
+    background: transparent;
+    color: var(--color-text);
+    border: 1px solid var(--color-border);
+    padding: 0.5rem 1.5rem 0.5rem 0.75rem;
+    font-size: 0.75rem;
+    font-family: var(--font-heading);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    cursor: pointer;
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 0.4rem center;
+    min-width: 60px;
+}
+
+.currency-selector select:hover {
+    border-color: var(--color-border-light);
+}
+
+.currency-selector select:focus {
+    outline: none;
+    border-color: var(--color-accent);
+}
+
+/* Language Selector - matches nav design */
+.language-selector {
+    position: relative;
+}
+
+.language-selector select {
+    background: transparent;
+    color: var(--color-text);
+    border: 1px solid var(--color-border);
+    padding: 0.5rem 1.5rem 0.5rem 0.75rem;
+    font-size: 0.75rem;
+    font-family: var(--font-heading);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    cursor: pointer;
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 0.4rem center;
+    min-width: 55px;
+}
+
+.language-selector select:hover {
+    border-color: var(--color-border-light);
+}
+
+.language-selector select:focus {
+    outline: none;
+    border-color: var(--color-accent);
+}
+
+/* RTL Support */
+[dir="rtl"] .currency-selector select,
+[dir="rtl"] .language-selector select {
+    padding: 0.5rem 0.75rem 0.5rem 1.5rem;
+    background-position: left 0.4rem center;
+}
+
+/* Mobile adjustments */
+@media (max-width: 768px) {
+    .currency-selector select,
+    .language-selector select {
+        padding: 0.4rem 1.25rem 0.4rem 0.5rem;
+        font-size: 0.7rem;
+        min-width: 50px;
+    }
+}
+
 /* CSS Variables */
 :root {
     --color-bg: #0a0a0a;

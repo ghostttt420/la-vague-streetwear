@@ -39,6 +39,21 @@
                 <li><a href="index.html#about" class="nav-link">About</a></li>
             </ul>
             <div class="nav-actions">
+                <div class="currency-selector">
+                    <select id="currencySelect" aria-label="Currency">
+                        <option value="USD">$ USD</option>
+                        <option value="NGN">₦ NGN</option>
+                        <option value="EUR">€ EUR</option>
+                        <option value="GBP">£ GBP</option>
+                    </select>
+                </div>
+                <div class="language-selector">
+                    <select id="languageSelect" aria-label="Language">
+                        <option value="en">EN</option>
+                        <option value="fr">FR</option>
+                        <option value="ar">AR</option>
+                    </select>
+                </div>
                 <button class="nav-btn" id="searchBtn" aria-label="Search">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <circle cx="11" cy="11" r="8"></circle>
@@ -323,6 +338,7 @@
     <!-- Scripts -->
     <script src="products.js?v=2"></script>
     <script src="cart.js?v=2"></script>
+    <script src="utils.js"></script>
     <script src="product.js?v=2"></script>
 </body>
 </html>

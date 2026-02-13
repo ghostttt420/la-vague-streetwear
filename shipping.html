@@ -36,11 +36,18 @@
             </ul>
             <div class="nav-actions">
                 <div class="currency-selector">
-                    <select id="currencySelect" aria-label="Select currency">
-                        <option value="USD">USD</option>
-                        <option value="NGN">NGN</option>
-                        <option value="EUR">EUR</option>
-                        <option value="GBP">GBP</option>
+                    <select id="currencySelect" aria-label="Currency">
+                        <option value="USD">$ USD</option>
+                        <option value="NGN">₦ NGN</option>
+                        <option value="EUR">€ EUR</option>
+                        <option value="GBP">£ GBP</option>
+                    </select>
+                </div>
+                <div class="language-selector">
+                    <select id="languageSelect" aria-label="Language">
+                        <option value="en">EN</option>
+                        <option value="fr">FR</option>
+                        <option value="ar">AR</option>
                     </select>
                 </div>
                 <button class="nav-btn" id="searchBtn" aria-label="Search">
@@ -369,8 +376,8 @@
     </div>
 
     <script src="products.js"></script>
+    <script src="cart.js"></script>
     <script src="utils.js"></script>
     <script src="page.js"></script>
-<script src="cart.js"></script>
 </body>
 </html>

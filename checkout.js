@@ -368,6 +368,30 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    // Initialize currency selector
+    const currencySelect = document.getElementById('currencySelect');
+    if (currencySelect) {
+        currencySelect.value = CurrencyConfig.getCurrentCurrency();
+        currencySelect.addEventListener('change', (e) => {
+            CurrencyConfig.setCurrency(e.target.value);
+            window.location.reload();
+        });
+    }
+    
+    // Initialize language selector
+    const languageSelect = document.getElementById('languageSelect');
+    if (languageSelect) {
+        const savedLang = localStorage.getItem('preferredLanguage') || 'en';
+        languageSelect.value = savedLang;
+        document.documentElement.lang = savedLang;
+        languageSelect.addEventListener('change', (e) => {
+            localStorage.setItem('preferredLanguage', e.target.value);
+            document.documentElement.lang = e.target.value;
+            document.documentElement.dir = e.target.value === 'ar' ? 'rtl' : 'ltr';
+            window.location.reload();
+        });
+    }
+
     // Start
     init();
 });
