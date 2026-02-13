@@ -439,7 +439,6 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    flex-direction: row;
     padding: 1.25rem 0;
     font-size: 0.9rem;
     font-weight: 600;
@@ -450,15 +449,23 @@
     color: var(--color-text);
     cursor: pointer;
     transition: var(--transition-fast);
-    direction: ltr;
-    text-align: left;
 }
 
-/* Force LTR layout for accordion regardless of page direction */
-[dir="rtl"] .accordion-header {
-    flex-direction: row-reverse;
-    direction: ltr;
-    text-align: left;
+/* Accordion text on left, arrow on right - force LTR layout */
+.accordion-header {
+    flex-direction: row !important;
+    direction: ltr !important;
+}
+
+/* Even in RTL mode, keep text left and arrow right */
+[dir="rtl"] .accordion-header,
+html[dir="rtl"] .accordion-header {
+    flex-direction: row !important;
+    direction: ltr !important;
+}
+
+.accordion-header svg {
+    margin-left: auto;
 }
 
 .accordion-header svg {
