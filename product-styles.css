@@ -64,6 +64,11 @@
     gap: 2rem;
 }
 
+/* Accordion alignment with product info */
+.product-gallery-wrapper .product-accordion {
+    padding-top: 2.5rem; /* Aligns with product title area */
+}
+
 /* Product Gallery */
 .product-gallery {
     position: sticky;
