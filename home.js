@@ -645,6 +645,12 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    // Initialize combined locale selector
+    initLocaleSelector();
+    
+    // Initialize legacy selectors (mobile menu)
+    initLegacySelectors();
+
     // Start
     init();
 });
