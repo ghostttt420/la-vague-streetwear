@@ -736,7 +736,7 @@ window.viewOrder = async function(orderId) {
         return;
     }
     
-    console.log('Viewing order:', order);
+    console.log('Viewing order - raw data:', JSON.stringify(order, null, 2));
     
     // Load order notes
     let notes = [];
@@ -767,6 +767,24 @@ window.viewOrder = async function(orderId) {
         }
     }
     
+    // Normalize field names - handle both snake_case and camelCase
+    const normalizedOrder = {
+        customer_name: order.customer_name || order.customerName || '',
+        customer_email: order.customer_email || order.customerEmail || order.email || '',
+        customer_phone: order.customer_phone || order.customerPhone || order.phone || '',
+        subtotal: parseInt(order.subtotal) || 0,
+        shipping_cost: parseInt(order.shipping_cost || order.shippingCost) || 0,
+        discount: parseInt(order.discount) || 0,
+        total: parseInt(order.total) || 0,
+        payment_status: order.payment_status || order.paymentStatus || 'pending',
+        payment_method: order.payment_method || order.paymentMethod || 'N/A',
+        order_status: order.order_status || order.status || 'pending',
+        shipping_address: shippingAddress,
+        items: items
+    };
+    
+    console.log('Normalized order data:', normalizedOrder);
+    
     elements.orderModalTitle.textContent = `Order ${orderId}`;
     elements.orderModalBody.innerHTML = '';
     
@@ -776,9 +794,9 @@ window.viewOrder = async function(orderId) {
     const customerSection = createElement('div', { className: 'order-section' });
     customerSection.appendChild(createElement('h4', {}, 'Customer Information'));
     
-    const customerName = order.customer_name || (order.firstName && order.lastName ? `${order.firstName} ${order.lastName}` : 'N/A');
-    const customerEmail = order.customer_email || order.email || 'N/A';
-    const customerPhone = order.customer_phone || order.phone || 'N/A';
+    const customerName = normalizedOrder.customer_name || 'N/A';
+    const customerEmail = normalizedOrder.customer_email || 'N/A';
+    const customerPhone = normalizedOrder.customer_phone || 'N/A';
     
     customerSection.appendChild(createElement('p', {}, createElement('strong', {}, 'Name: '), customerName));
     customerSection.appendChild(createElement('p', {}, createElement('strong', {}, 'Email: '), customerEmail));
@@ -839,23 +857,25 @@ window.viewOrder = async function(orderId) {
     const paymentSection = createElement('div', { className: 'order-section' });
     paymentSection.appendChild(createElement('h4', {}, 'Payment Summary'));
     
-    const subtotal = order.subtotal || 0;
-    const shipping = order.shipping_cost || order.shippingCost || 0;
-    const discount = order.discount || 0;
-    const total = order.total || 0;
+    const subtotal = normalizedOrder.subtotal;
+    const shipping = normalizedOrder.shipping_cost;
+    const discount = normalizedOrder.discount;
+    const total = normalizedOrder.total;
     
-    paymentSection.appendChild(createElement('p', {}, createElement('strong', {}, 'Subtotal: '), `$${subtotal}`));
-    paymentSection.appendChild(createElement('p', {}, createElement('strong', {}, 'Shipping: '), `$${shipping}`));
+    console.log('Payment values:', { subtotal, shipping, discount, total });
+    
+    paymentSection.appendChild(createElement('p', {}, createElement('strong', {}, 'Subtotal: '), `$${subtotal.toLocaleString()}`));
+    paymentSection.appendChild(createElement('p', {}, createElement('strong', {}, 'Shipping: '), `$${shipping.toLocaleString()}`));
     if (discount > 0) {
-        paymentSection.appendChild(createElement('p', {}, createElement('strong', {}, 'Discount: '), `-$${discount}`));
+        paymentSection.appendChild(createElement('p', {}, createElement('strong', {}, 'Discount: '), `-$${discount.toLocaleString()}`));
     }
     const totalP = createElement('p', { className: 'text-bold', style: 'font-size: 1.1rem; margin-top: 0.5rem;' }, 
-        createElement('strong', {}, 'Total: '), `$${total}`);
+        createElement('strong', {}, 'Total: '), `$${total.toLocaleString()}`);
     paymentSection.appendChild(totalP);
     
     // Payment Status
-    const paymentStatus = order.payment_status || order.paymentStatus || 'pending';
-    const paymentMethod = order.payment_method || order.paymentMethod || 'N/A';
+    const paymentStatus = normalizedOrder.payment_status;
+    const paymentMethod = normalizedOrder.payment_method;
     paymentSection.appendChild(createElement('p', { style: 'margin-top: 1rem;' }, 
         createElement('strong', {}, 'Payment Status: '), paymentStatus));
     paymentSection.appendChild(createElement('p', {}, 
