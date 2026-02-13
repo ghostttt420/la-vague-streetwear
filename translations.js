@@ -31,7 +31,9 @@ const TRANSLATIONS = {
             yourName: 'Your Name',
             email: 'Email',
             orderId: 'Order ID (optional)',
-            verifiedPurchase: 'Verified Purchase'
+            verifiedPurchase: 'Verified Purchase',
+            quickView: 'Quick View',
+            soldOut: 'Sold Out'
         },
         cart: {
             title: 'Your Cart',
@@ -74,7 +76,9 @@ const TRANSLATIONS = {
             yourName: 'Votre nom',
             email: 'Email',
             orderId: 'N° de commande (optionnel)',
-            verifiedPurchase: 'Achat Vérifié'
+            verifiedPurchase: 'Achat Vérifié',
+            quickView: 'Aperçu Rapide',
+            soldOut: 'Épuisé'
         },
         cart: {
             title: 'Votre Panier',
@@ -117,7 +121,9 @@ const TRANSLATIONS = {
             yourName: 'الاسم',
             email: 'البريد الإلكتروني',
             orderId: 'رقم الطلب (اختياري)',
-            verifiedPurchase: 'شراء موثق'
+            verifiedPurchase: 'شراء موثق',
+            quickView: 'نظرة سريعة',
+            soldOut: 'نفذت الكمية'
         },
         cart: {
             title: 'سلة التسوق',

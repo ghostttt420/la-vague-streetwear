@@ -228,7 +228,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     <h4 onclick="window.location.href='product.html?slug=${product.slug}'">${product.name}</h4>
                     <p class="wishlist-item-price">${CurrencyConfig.formatPrice(product.price)}</p>
                     <div class="wishlist-item-actions">
-                        <button class="btn-add-cart-sm" onclick="window.addToCartFromWishlist('${product.id}')">Add to Cart</button>
+                        <button class="btn-add-cart-sm" onclick="window.addToCartFromWishlist('${product.id}')">${typeof t === 'function' ? t('product.addToCart') : 'Add to Cart'}</button>
                         <button class="btn-remove-sm" onclick="window.removeFromWishlist('${product.id}')">Remove</button>
                     </div>
                 </div>

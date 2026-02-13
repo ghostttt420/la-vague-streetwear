@@ -250,9 +250,9 @@ document.addEventListener('DOMContentLoaded', () => {
                                 <circle cx="18" cy="20" r="1"></circle>
                                 <path d="M6 6L5 3H2"></path>
                             </svg>
-                            Add to Cart
+                            ${t('product.addToCart')}
                         </button>
-                        <button class="product-btn" onclick="event.stopPropagation(); window.quickView('${product.id}')">Quick View</button>
+                        <button class="product-btn" onclick="event.stopPropagation(); window.quickView('${product.id}')">${t('product.quickView')}</button>
                         <button class="product-btn wishlist ${getWishlist().includes(product.id) ? 'active' : ''}" 
                                 onclick="event.stopPropagation(); window.toggleWishlist('${product.id}')">
                             <svg width="18" height="18" viewBox="0 0 24 24" fill="${getWishlist().includes(product.id) ? 'currentColor' : 'none'}" stroke="currentColor" stroke-width="2">
@@ -927,7 +927,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     <h4 onclick="window.location.href='product.html?slug=${product.slug}'">${product.name}</h4>
                     <p class="wishlist-item-price">${CurrencyConfig.formatPrice(product.price)}</p>
                     <div class="wishlist-item-actions">
-                        <button class="btn-add-cart-sm" onclick="window.shopAddToCartFromWishlist('${product.id}')">Add to Cart</button>
+                        <button class="btn-add-cart-sm" onclick="window.shopAddToCartFromWishlist('${product.id}')">${t('product.addToCart')}</button>
                         <button class="btn-remove-sm" onclick="window.shopRemoveFromWishlist('${product.id}')">Remove</button>
                     </div>
                 </div>
