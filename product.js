@@ -813,20 +813,30 @@ document.addEventListener('DOMContentLoaded', () => {
     // Load reviews for product
     async function loadReviews(productId) {
         currentProductId = productId;
+        console.log('[Reviews] Loading reviews for product:', productId);
         try {
-            const response = await fetch(`${API_URL}/products/${productId}/reviews?status=approved`);
+            const url = `${API_URL}/products/${productId}/reviews?status=approved`;
+            console.log('[Reviews] Fetching:', url);
+            const response = await fetch(url);
+            
+            console.log('[Reviews] Response status:', response.status);
             
             // If endpoint returns 404 or 500, reviews table likely doesn't exist yet
             if (!response.ok) {
-                console.log('[Reviews] Endpoint not available yet');
+                const errorText = await response.text();
+                console.log('[Reviews] Endpoint error:', response.status, errorText);
                 displayReviews([], { total: 0, average: 0 });
                 return;
             }
             
             const data = await response.json();
+            console.log('[Reviews] Data received:', data);
             
             if (data.success) {
                 displayReviews(data.reviews, data.summary);
+            } else {
+                console.log('[Reviews] API returned error:', data.error);
+                displayReviews([], { total: 0, average: 0 });
             }
         } catch (error) {
             console.log('[Reviews] Failed to load:', error.message);
@@ -917,10 +927,28 @@ document.addEventListener('DOMContentLoaded', () => {
     const reviewForm = document.getElementById('reviewForm');
     const starRatingInput = document.getElementById('starRatingInput');
     
+    console.log('[Reviews] Modal elements:', { 
+        reviewModal: !!reviewModal, 
+        writeReviewBtn: !!writeReviewBtn,
+        reviewModalClose: !!reviewModalClose,
+        reviewModalOverlay: !!reviewModalOverlay,
+        reviewForm: !!reviewForm,
+        starRatingInput: !!starRatingInput
+    });
+    
     if (writeReviewBtn) {
-        writeReviewBtn.addEventListener('click', () => {
-            reviewModal.style.display = 'flex';
+        console.log('[Reviews] Attaching click listener to writeReviewBtn');
+        writeReviewBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            console.log('[Reviews] Write review button clicked');
+            if (reviewModal) {
+                reviewModal.style.display = 'flex';
+                console.log('[Reviews] Modal opened');
+            }
         });
+    } else {
+        console.error('[Reviews] writeReviewBtn not found!');
     }
     
     if (reviewModalClose) {

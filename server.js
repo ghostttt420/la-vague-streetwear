@@ -2319,9 +2319,12 @@ app.get('/api/admin/reports/export', verifyAdminToken, asyncHandler(async (req, 
 
 // Get reviews for a product (public)
 app.get('/api/products/:id/reviews', asyncHandler(async (req, res) => {
+    console.log('[REVIEWS API] Request received for product:', req.params.id);
     try {
         const { id } = req.params;
         const { status = 'approved', sort = 'newest' } = req.query;
+        
+        console.log('[REVIEWS API] Using PostgreSQL:', USE_POSTGRES);
         
         let sql = 'SELECT * FROM reviews WHERE product_id = $1';
         const params = [id];
@@ -2377,8 +2380,8 @@ app.get('/api/products/:id/reviews', asyncHandler(async (req, res) => {
         
         res.json({ success: true, reviews, summary });
     } catch (error) {
-        console.error('[REVIEWS ERROR]', error);
-        res.status(500).json({ success: false, error: error.message });
+        console.error('[REVIEWS ERROR]', error.message, error.stack);
+        res.status(500).json({ success: false, error: error.message, stack: error.stack });
     }
 }));
 
