@@ -124,7 +124,7 @@
                     <!-- Color Selection -->
                     <div class="option-group" id="colorGroup">
                         <label class="option-label">
-                            Color: <span id="selectedColor">Select</span>
+                            <span data-i18n="product.color">Color</span>: <span id="selectedColor" data-i18n="product.select">Select</span>
                         </label>
                         <div class="color-selector" id="colorSelector"></div>
                     </div>
@@ -132,7 +132,7 @@
                     <!-- Size Selection -->
                     <div class="option-group" id="sizeGroup">
                         <label class="option-label">
-                            Size: <span id="selectedSize">Select</span>
+                            <span data-i18n="product.size">Size</span>: <span id="selectedSize" data-i18n="product.select">Select</span>
                             <button class="size-guide-btn" id="sizeGuideBtn" data-i18n="product.sizeGuide">Size Guide</button>
                         </label>
                         <div class="size-selector" id="sizeSelector"></div>
@@ -140,10 +140,10 @@
                     
                     <!-- Actions -->
                     <div class="product-actions">
-                        <div class="quantity-selector">
-                            <button class="qty-btn" id="qtyMinus">−</button>
+                        <div class="quantity-selector" title="Quantity">
+                            <button class="qty-btn" id="qtyMinus" aria-label="Decrease">−</button>
                             <span id="quantity">1</span>
-                            <button class="qty-btn" id="qtyPlus">+</button>
+                            <button class="qty-btn" id="qtyPlus" aria-label="Increase">+</button>
                         </div>
                         <button class="btn-add-cart" id="addToCartBtn" data-i18n="product.addToCart">
                             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -167,20 +167,20 @@
                             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
                             </svg>
-                            <span>Free shipping over $150</span>
+                            <span data-i18n="product.freeShipping">Free shipping over $150</span>
                         </div>
                         <div class="meta-item">
                             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <circle cx="12" cy="12" r="10"></circle>
                                 <polyline points="12 6 12 12 16 14"></polyline>
                             </svg>
-                            <span>Ships within 24 hours</span>
+                            <span data-i18n="product.shipsIn">Ships within 24 hours</span>
                         </div>
                         <div class="meta-item">
                             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
                             </svg>
-                            <span>30-day returns</span>
+                            <span data-i18n="product.returns">30-day returns</span>
                         </div>
                     </div>
                     
@@ -285,7 +285,7 @@
     <!-- Related Products -->
     <section class="related-products" id="relatedProducts">
         <div class="container">
-            <h2 class="section-title">You May Also Like</h2>
+            <h2 class="section-title" data-i18n="product.youMayAlsoLike">You May Also Like</h2>
             <div class="related-grid" id="relatedGrid"></div>
         </div>
     </section>
