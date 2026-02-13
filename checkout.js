@@ -48,11 +48,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         
         console.log('Initializing checkout...');
-        
-        // Initialize currency selector
-        initCurrencySelector();
-        
-        updateShippingPrices();
         renderOrderSummary();
         updateTotals();
         bindEvents();
@@ -66,51 +61,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 elements.nav?.classList.remove('scrolled');
             }
         }, { passive: true });
-        
-        // Listen for currency changes
-        window.addEventListener('currencyChanged', () => {
-            updateShippingPrices();
-            renderOrderSummary();
-            updateTotals();
-        });
-    }
-    
-    // ==========================================
-    // CURRENCY SELECTOR
-    // ==========================================
-    function initCurrencySelector() {
-        const currencySelect = document.getElementById('currencySelect');
-        if (currencySelect) {
-            // Set initial value from localStorage
-            const currentCurrency = CurrencyConfig.getCurrentCurrency();
-            currencySelect.value = currentCurrency;
-            
-            // Handle currency change
-            currencySelect.addEventListener('change', (e) => {
-                CurrencyConfig.setCurrency(e.target.value);
-            });
-        }
-    }
-    
-    // ==========================================
-    // SHIPPING PRICES
-    // ==========================================
-    function updateShippingPrices() {
-        const standardShippingEl = document.getElementById('standardShipping');
-        const expressShippingEl = document.getElementById('expressShipping');
-        
-        if (standardShippingEl) {
-            const subtotal = state.cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-            if (subtotal >= 150) {
-                standardShippingEl.textContent = 'FREE';
-            } else {
-                standardShippingEl.textContent = CurrencyConfig.formatPrice(10);
-            }
-        }
-        
-        if (expressShippingEl) {
-            expressShippingEl.textContent = CurrencyConfig.formatPrice(25);
-        }
     }
 
     // ==========================================
@@ -127,7 +77,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     <p class="summary-item-name">${item.name}</p>
                     <p class="summary-item-variant">${item.color} / ${item.size}</p>
                 </div>
-                <span class="summary-item-price">${CurrencyConfig.formatPrice(item.price * item.quantity)}</span>
+                <span class="summary-item-price">$${item.price * item.quantity}</span>
             </div>
         `).join('');
     }
@@ -136,12 +86,12 @@ document.addEventListener('DOMContentLoaded', () => {
         const subtotal = state.cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
         const total = subtotal + state.shipping - state.discount;
         
-        elements.summarySubtotal.textContent = CurrencyConfig.formatPrice(subtotal);
-        elements.summaryShipping.textContent = state.shipping === 0 ? 'FREE' : CurrencyConfig.formatPrice(state.shipping);
-        elements.summaryTotal.textContent = CurrencyConfig.formatPrice(total);
+        elements.summarySubtotal.textContent = `$${subtotal.toFixed(2)}`;
+        elements.summaryShipping.textContent = `$${state.shipping.toFixed(2)}`;
+        elements.summaryTotal.textContent = `$${total.toFixed(2)}`;
         
         if (state.discount > 0) {
-            elements.summaryDiscount.textContent = `-${CurrencyConfig.formatPrice(state.discount)}`;
+            elements.summaryDiscount.textContent = `-$${state.discount.toFixed(2)}`;
             elements.discountLine.style.display = 'flex';
         } else {
             elements.discountLine.style.display = 'none';
@@ -150,12 +100,8 @@ document.addEventListener('DOMContentLoaded', () => {
         // Free shipping threshold
         if (subtotal >= 150) {
             state.shipping = 0;
-            const freeText = (typeof I18n !== 'undefined') ? I18n.t('checkout.free') : 'FREE';
-            elements.summaryShipping.textContent = freeText;
-            const standardShippingEl = document.getElementById('standardShipping');
-            if (standardShippingEl) standardShippingEl.textContent = freeText;
-        } else {
-            document.getElementById('standardShipping').textContent = CurrencyConfig.formatPrice(10);
+            elements.summaryShipping.textContent = 'FREE';
+            document.getElementById('standardShipping').textContent = 'FREE';
         }
     }
 
@@ -197,22 +143,14 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // ==========================================
-    // FORM HANDLING & INPUT MASKING
+    // FORM HANDLING
     // ==========================================
     function formatCardNumber(value) {
-        return InputMasks.creditCard(value);
+        return value.replace(/\s/g, '').replace(/(\d{4})/g, '$1 ').trim();
     }
 
     function formatExpiry(value) {
-        return InputMasks.expiryDate(value);
-    }
-
-    function formatPhone(value) {
-        return InputMasks.phoneNumber(value, 'auto');
-    }
-
-    function formatCVV(value) {
-        return InputMasks.cvv(value);
+        return value.replace(/\D/g, '').replace(/(\d{2})(\d{0,2})/, '$1 / $2').trim();
     }
 
     async function handlePlaceOrder(e) {
@@ -235,24 +173,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 input?.classList.remove('error');
             }
         });
-        
-        // Validate email format
-        const emailInput = document.getElementById('email');
-        if (emailInput && emailInput.value && !FormValidation.isValidEmail(emailInput.value)) {
-            isValid = false;
-            emailInput.classList.add('error');
-            showToast('Please enter a valid email address', 'error');
-            return;
-        }
-        
-        // Validate phone
-        const phoneInput = document.getElementById('phone');
-        if (phoneInput && phoneInput.value && !FormValidation.isValidPhone(phoneInput.value)) {
-            isValid = false;
-            phoneInput.classList.add('error');
-            showToast('Please enter a valid phone number', 'error');
-            return;
-        }
         
         if (!isValid) {
             console.log('Validation failed, missing:', missingFields);
@@ -285,8 +205,9 @@ document.addEventListener('DOMContentLoaded', () => {
             notes: ''
         };
         
-        // Show loading state with spinner
-        ButtonState.setLoading(elements.placeOrderBtn, 'Processing Order...', true);
+        // Show loading
+        elements.placeOrderBtn.textContent = 'Processing...';
+        elements.placeOrderBtn.disabled = true;
         
         try {
             // Try to send to backend API
@@ -341,8 +262,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 // Clear cart
                 localStorage.removeItem('cart');
                 
-                // Show success state
-                ButtonState.setSuccess(elements.placeOrderBtn, 'Order Placed!', 2000);
+                showToast('Order placed successfully!', 'success');
                 
                 setTimeout(() => {
                     window.location.href = `order-confirmation.html?order=${result.orderId}`;
@@ -353,9 +273,6 @@ document.addEventListener('DOMContentLoaded', () => {
         } catch (error) {
             console.error('Order API error:', error);
             console.error('Error stack:', error.stack);
-            
-            // Show error state on button
-            ButtonState.setError(elements.placeOrderBtn, 'Try Again', 3000);
             
             // Show detailed error to user
             const errorDetails = `API Error: ${error.message}\n\nPlease check the browser console (F12) for more details.\n\nThe order will be saved locally but will NOT appear in the admin panel until the API connection is fixed.`;
@@ -427,47 +344,18 @@ document.addEventListener('DOMContentLoaded', () => {
         });
         
         // Discount code
-        elements.applyDiscount?.addEventListener('click', async function() {
-            ButtonState.setLoading(this, 'Applying...', false);
-            await applyDiscountCode();
-            ButtonState.reset(this);
-        });
+        elements.applyDiscount?.addEventListener('click', applyDiscountCode);
         elements.discountCode?.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') {
-                e.preventDefault();
-                elements.applyDiscount?.click();
-            }
+            if (e.key === 'Enter') applyDiscountCode();
         });
         
-        // Card formatting with input masks
+        // Card formatting
         elements.cardNumber?.addEventListener('input', (e) => {
-            const cursorPosition = e.target.selectionStart;
-            const oldLength = e.target.value.length;
             e.target.value = formatCardNumber(e.target.value);
-            // Adjust cursor position after formatting
-            const newLength = e.target.value.length;
-            e.target.setSelectionRange(cursorPosition + (newLength - oldLength), cursorPosition + (newLength - oldLength));
         });
         
         elements.expiry?.addEventListener('input', (e) => {
             e.target.value = formatExpiry(e.target.value);
-        });
-        
-        // Phone formatting with auto country detection
-        const phoneInput = document.getElementById('phone');
-        phoneInput?.addEventListener('input', (e) => {
-            const cursorPosition = e.target.selectionStart;
-            const oldLength = e.target.value.length;
-            e.target.value = formatPhone(e.target.value);
-            // Adjust cursor position
-            const newLength = e.target.value.length;
-            e.target.setSelectionRange(cursorPosition + (newLength - oldLength), cursorPosition + (newLength - oldLength));
-        });
-        
-        // CVV formatting
-        const cvvInput = document.getElementById('cvv');
-        cvvInput?.addEventListener('input', (e) => {
-            e.target.value = formatCVV(e.target.value);
         });
         
         // Place order

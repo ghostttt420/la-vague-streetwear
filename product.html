@@ -20,9 +20,9 @@
     <!-- Announcement Bar -->
     <div class="announcement-bar">
         <div class="announcement-content">
-            <span data-i18n="announcement.freeShipping">FREE SHIPPING ON ORDERS OVER $150</span>
+            <span>FREE SHIPPING ON ORDERS OVER $150</span>
             <span class="announcement-divider">|</span>
-            <span data-i18n="announcement.newDrop">NEW DROP AVAILABLE NOW</span>
+            <span>NEW DROP AVAILABLE NOW</span>
         </div>
     </div>
 
@@ -33,33 +33,25 @@
                 <span class="logo-text">LA VAGUE</span>
             </a>
             <ul class="nav-links" id="navLinks">
-                <li><a href="shop.html" class="nav-link" data-i18n="nav.shop">Shop</a></li>
-                <li><a href="index.html#collections" class="nav-link" data-i18n="nav.collections">Collections</a></li>
-                <li><a href="index.html#lookbook" class="nav-link" data-i18n="nav.lookbook">Lookbook</a></li>
-                <li><a href="index.html#about" class="nav-link" data-i18n="nav.about">About</a></li>
+                <li><a href="shop.html" class="nav-link">Shop</a></li>
+                <li><a href="index.html#collections" class="nav-link">Collections</a></li>
+                <li><a href="index.html#lookbook" class="nav-link">Lookbook</a></li>
+                <li><a href="index.html#about" class="nav-link">About</a></li>
             </ul>
             <div class="nav-actions">
-                <div class="currency-selector">
-                    <select id="currencySelect" aria-label="Select currency">
-                        <option value="USD">USD</option>
-                        <option value="NGN">NGN</option>
-                        <option value="EUR">EUR</option>
-                        <option value="GBP">GBP</option>
-                    </select>
-                </div>
-                <button class="nav-btn" id="searchBtn" aria-label="Search" data-i18n-placeholder="nav.search">
+                <button class="nav-btn" id="searchBtn" aria-label="Search">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <circle cx="11" cy="11" r="8"></circle>
                         <path d="m21 21-4.35-4.35"></path>
                     </svg>
                 </button>
-                <button class="nav-btn" id="wishlistBtn" aria-label="Wishlist" data-i18n-placeholder="nav.wishlist">
+                <button class="nav-btn" id="wishlistBtn" aria-label="Wishlist">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
                     </svg>
                     <span class="wishlist-count" id="wishlistCount">0</span>
                 </button>
-                <button class="nav-btn cart-btn" id="cartBtn" aria-label="Cart" data-i18n-placeholder="nav.cart">
+                <button class="nav-btn cart-btn" id="cartBtn" aria-label="Cart">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <path d="M6 6h15l-1.5 9h-12z"></path>
                         <circle cx="9" cy="20" r="1"></circle>
@@ -68,7 +60,7 @@
                     </svg>
                     <span class="cart-count" id="cartCount">0</span>
                 </button>
-                <button class="mobile-menu-btn" id="mobileMenuBtn" aria-label="Menu" data-i18n-placeholder="nav.menu">
+                <button class="mobile-menu-btn" id="mobileMenuBtn" aria-label="Menu">
                     <span></span>
                     <span></span>
                 </button>
@@ -79,9 +71,9 @@
     <!-- Breadcrumb -->
     <nav class="breadcrumb" id="breadcrumb">
         <div class="container">
-            <a href="index.html" data-i18n="breadcrumb.home">Home</a>
+            <a href="index.html">Home</a>
             <span>/</span>
-            <a href="shop.html" data-i18n="breadcrumb.shop">Shop</a>
+            <a href="shop.html">Shop</a>
             <span>/</span>
             <span id="breadcrumbProduct">Product</span>
         </div>
@@ -117,7 +109,7 @@
                     <!-- Color Selection -->
                     <div class="option-group" id="colorGroup">
                         <label class="option-label">
-                            <span data-i18n="product.color">Color</span>: <span id="selectedColor" data-i18n="product.select">Select</span>
+                            Color: <span id="selectedColor">Select</span>
                         </label>
                         <div class="color-selector" id="colorSelector"></div>
                     </div>
@@ -125,8 +117,8 @@
                     <!-- Size Selection -->
                     <div class="option-group" id="sizeGroup">
                         <label class="option-label">
-                            <span data-i18n="product.size">Size</span>: <span id="selectedSize" data-i18n="product.select">Select</span>
-                            <button class="size-guide-btn" id="sizeGuideBtn" data-i18n="product.sizeGuide">Size Guide</button>
+                            Size: <span id="selectedSize">Select</span>
+                            <button class="size-guide-btn" id="sizeGuideBtn">Size Guide</button>
                         </label>
                         <div class="size-selector" id="sizeSelector"></div>
                     </div>
@@ -145,7 +137,7 @@
                                 <circle cx="18" cy="20" r="1"></circle>
                                 <path d="M6 6L5 3H2"></path>
                             </svg>
-                            <span data-i18n="product.addToCart">Add to Cart</span>
+                            Add to Cart
                         </button>
                         <button class="btn-wishlist" id="wishlistToggleBtn">
                             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -160,27 +152,27 @@
                             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
                             </svg>
-                            <span data-i18n="product.freeShipping">Free shipping over $150</span>
+                            <span>Free shipping over $150</span>
                         </div>
                         <div class="meta-item">
                             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <circle cx="12" cy="12" r="10"></circle>
                                 <polyline points="12 6 12 12 16 14"></polyline>
                             </svg>
-                            <span data-i18n="product.shipsIn">Ships within 24 hours</span>
+                            <span>Ships within 24 hours</span>
                         </div>
                         <div class="meta-item">
                             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
                             </svg>
-                            <span data-i18n="product.returns">30-day returns</span>
+                            <span>30-day returns</span>
                         </div>
                     </div>
                     
                     <!-- Accordion -->
                     <div class="product-accordion">
                         <div class="accordion-item active">
-                            <button class="accordion-header" data-i18n="product.description">
+                            <button class="accordion-header">
                                 Description
                                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                     <polyline points="6 9 12 15 18 9"></polyline>
@@ -192,28 +184,16 @@
                             </div>
                         </div>
                         <div class="accordion-item">
-                            <button class="accordion-header" data-i18n="product.shippingReturns">
+                            <button class="accordion-header">
                                 Shipping & Returns
                                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                     <polyline points="6 9 12 15 18 9"></polyline>
                                 </svg>
                             </button>
                             <div class="accordion-content">
-                                <p data-i18n="product.shippingText">Free standard shipping on all orders over $150. Orders are processed within 24 hours and typically arrive within 3-5 business days.</p>
-                                <p style="margin-top: 1rem;" data-i18n="product.returnsText">We accept returns within 30 days of delivery. Items must be unworn with original tags attached.</p>
+                                <p>Free standard shipping on all orders over $150. Orders are processed within 24 hours and typically arrive within 3-5 business days.</p>
+                                <p style="margin-top: 1rem;">We accept returns within 30 days of delivery. Items must be unworn with original tags attached.</p>
                             </div>
-                        </div>
-                    </div>
-                    
-                    <!-- Product Rating Summary -->
-                    <div class="product-rating-summary" id="ratingSummary" style="display: none;">
-                        <div class="rating-header">
-                            <div class="rating-score">
-                                <span class="rating-number" id="averageRating">0</span>
-                                <div class="rating-stars-large" id="ratingStarsLarge"></div>
-                                <span class="rating-total" id="totalReviews">0 reviews</span>
-                            </div>
-                            <div class="rating-bars" id="ratingBars"></div>
                         </div>
                     </div>
                 </div>
@@ -224,60 +204,8 @@
     <!-- Related Products -->
     <section class="related-products" id="relatedProducts">
         <div class="container">
-            <h2 class="section-title" data-i18n="product.youMayAlsoLike">You May Also Like</h2>
+            <h2 class="section-title">You May Also Like</h2>
             <div class="related-grid" id="relatedGrid"></div>
-        </div>
-    </section>
-
-    <!-- Reviews Section -->
-    <section class="reviews-section" id="reviewsSection">
-        <div class="container">
-            <h2 class="section-title">Customer Reviews</h2>
-            
-            <!-- Reviews Summary -->
-            <div class="reviews-summary" id="reviewsSummary">
-                <div class="summary-left">
-                    <div class="average-rating">
-                        <span class="rating-big" id="avgRatingBig">0.0</span>
-                        <div class="rating-stars" id="avgRatingStars"></div>
-                        <span class="reviews-count" id="reviewsCountText">Based on 0 reviews</span>
-                    </div>
-                    <div class="rating-breakdown" id="ratingBreakdown"></div>
-                </div>
-                <div class="summary-right">
-                    <div class="write-review-notice">
-                        <p>Share your thoughts with other customers</p>
-                        <button class="btn btn-secondary" id="writeReviewBtn" style="display: none;">Write a Review</button>
-                        <p class="review-login-msg" id="reviewLoginMsg">Purchase this product to leave a review</p>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Review Filters -->
-            <div class="reviews-filters" id="reviewsFilters" style="display: none;">
-                <div class="filter-group">
-                    <label>Sort by:</label>
-                    <select id="reviewSort" class="sort-select">
-                        <option value="newest">Newest</option>
-                        <option value="highest">Highest Rated</option>
-                        <option value="lowest">Lowest Rated</option>
-                    </select>
-                </div>
-                <div class="filter-group">
-                    <label>Filter:</label>
-                    <button class="filter-btn" data-filter="all">All Reviews</button>
-                    <button class="filter-btn" data-filter="verified">Verified Purchase</button>
-                    <button class="filter-btn" data-filter="photos">With Photos</button>
-                </div>
-            </div>
-            
-            <!-- Reviews List -->
-            <div class="reviews-list" id="reviewsList">
-                <div class="reviews-loading">Loading reviews...</div>
-            </div>
-            
-            <!-- Reviews Pagination -->
-            <div class="reviews-pagination" id="reviewsPagination" style="display: none;"></div>
         </div>
     </section>
 
@@ -290,7 +218,7 @@
                     <circle cx="11" cy="11" r="8"></circle>
                     <path d="m21 21-4.35-4.35"></path>
                 </svg>
-                <input type="text" id="searchInput" placeholder="Search products..." autocomplete="off" data-i18n-placeholder="search.placeholder">
+                <input type="text" id="searchInput" placeholder="Search products..." autocomplete="off">
             </div>
             <div class="search-results" id="searchResults"></div>
         </div>
@@ -300,65 +228,10 @@
     <div class="modal-overlay" id="sizeGuideOverlay"></div>
     <div class="size-guide-modal" id="sizeGuideModal">
         <div class="size-guide-header">
-            <h3 data-i18n="sizeGuide.title">Size Guide</h3>
+            <h3>Size Guide</h3>
             <button class="modal-close" id="sizeGuideClose">×</button>
         </div>
         <div class="size-guide-content" id="sizeGuideContent"></div>
-    </div>
-
-    <!-- Review Modal -->
-    <div class="modal-overlay" id="reviewOverlay"></div>
-    <div class="review-modal" id="reviewModal">
-        <div class="review-modal-header">
-            <h3>Write a Review</h3>
-            <button class="modal-close" id="reviewModalClose">×</button>
-        </div>
-        <div class="review-modal-content">
-            <div class="review-product-info" id="reviewProductInfo"></div>
-            <form id="reviewForm">
-                <input type="hidden" id="reviewToken">
-                <div class="form-group">
-                    <label>Overall Rating *</label>
-                    <div class="star-rating-input" id="starRatingInput">
-                        <button type="button" data-rating="1"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#d4af37" stroke-width="1"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></button>
-                        <button type="button" data-rating="2"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#d4af37" stroke-width="1"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></button>
-                        <button type="button" data-rating="3"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#d4af37" stroke-width="1"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></button>
-                        <button type="button" data-rating="4"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#d4af37" stroke-width="1"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></button>
-                        <button type="button" data-rating="5"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#d4af37" stroke-width="1"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></button>
-                    </div>
-                    <span class="rating-label" id="ratingLabel">Select a rating</span>
-                </div>
-                <div class="form-group">
-                    <label for="reviewTitle">Review Title</label>
-                    <input type="text" id="reviewTitle" placeholder="Summarize your experience" maxlength="100">
-                </div>
-                <div class="form-group">
-                    <label for="reviewText">Review *</label>
-                    <textarea id="reviewText" rows="4" placeholder="What did you like or dislike? How was the fit and quality?" maxlength="2000" required></textarea>
-                </div>
-                <div class="form-group">
-                    <label for="reviewerName">Your Name</label>
-                    <input type="text" id="reviewerName" placeholder="Your name (or Anonymous)" value="Anonymous">
-                </div>
-                <div class="form-group">
-                    <label>Photos (optional)</label>
-                    <div class="photo-upload-zone" id="photoUploadZone">
-                        <input type="file" id="reviewPhotos" multiple accept="image/*" style="display: none;">
-                        <div class="upload-placeholder">
-                            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                                <polyline points="17 8 12 3 7 8"></polyline>
-                                <line x1="12" y1="3" x2="12" y2="15"></line>
-                            </svg>
-                            <p>Add Photos</p>
-                            <span class="text-muted">Max 5 images</span>
-                        </div>
-                    </div>
-                    <div id="reviewPhotoPreview" class="photo-preview-grid"></div>
-                </div>
-                <button type="submit" class="btn btn-primary btn-full" id="submitReviewBtn">Submit Review</button>
-            </form>
-        </div>
     </div>
 
     <!-- Toast Container -->
@@ -373,21 +246,21 @@
                     <p class="footer-tagline">Ride the wave. Timeless streetwear for the modern individual.</p>
                 </div>
                 <div class="footer-links">
-                    <h4 data-i18n="footer.shop">Shop</h4>
+                    <h4>Shop</h4>
                     <ul>
-                        <li><a href="shop.html" data-i18n="footer.allProducts">All Products</a></li>
-                        <li><a href="shop.html?category=hoodies" data-i18n="collections.hoodies">Hoodies</a></li>
-                        <li><a href="shop.html?category=tees" data-i18n="collections.tees">T-Shirts</a></li>
-                        <li><a href="shop.html?category=bottoms" data-i18n="collections.bottoms">Bottoms</a></li>
+                        <li><a href="shop.html">All Products</a></li>
+                        <li><a href="shop.html?category=hoodies">Hoodies</a></li>
+                        <li><a href="shop.html?category=tees">T-Shirts</a></li>
+                        <li><a href="shop.html?category=bottoms">Bottoms</a></li>
                     </ul>
                 </div>
                 <div class="footer-links">
-                    <h4 data-i18n="footer.help">Help</h4>
+                    <h4>Help</h4>
                     <ul>
-                        <li><a href="shipping.html" data-i18n="footer.shipping">Shipping</a></li>
-                        <li><a href="returns.html" data-i18n="footer.returns">Returns</a></li>
-                        <li><a href="faq.html" data-i18n="footer.faq">FAQ</a></li>
-                        <li><a href="contact.html" data-i18n="nav.contact">Contact</a></li>
+                        <li><a href="shipping.html">Shipping</a></li>
+                        <li><a href="returns.html">Returns</a></li>
+                        <li><a href="faq.html">FAQ</a></li>
+                        <li><a href="contact.html">Contact</a></li>
                     </ul>
                 </div>
             </div>
@@ -407,22 +280,22 @@
     <div class="cart-overlay" id="cartOverlay"></div>
     <div class="cart-sidebar" id="cartSidebar">
         <div class="cart-header">
-            <h3 data-i18n="cart.title">Your Cart</h3>
+            <h3>Your Cart</h3>
             <button class="cart-close" id="cartClose">×</button>
         </div>
         <div class="cart-items" id="cartItems">
             <div class="cart-empty">
-                <p data-i18n="cart.empty">Your cart is empty</p>
-                <a href="shop.html" class="btn btn-secondary" onclick="window.closeCart()" data-i18n="cart.continueShopping">Continue Shopping</a>
+                <p>Your cart is empty</p>
+                <a href="shop.html" class="btn btn-secondary" onclick="window.closeCart()">Continue Shopping</a>
             </div>
         </div>
         <div class="cart-footer" id="cartFooter">
             <div class="cart-subtotal">
-                <span data-i18n="cart.subtotal">Subtotal</span>
+                <span>Subtotal</span>
                 <span id="cartSubtotal">$0</span>
             </div>
-            <a href="checkout.html" class="btn btn-primary btn-full" onclick="window.closeCart()" data-i18n="cart.checkout">Checkout</a>
-            <p class="cart-note" data-i18n="cart.note">Shipping & taxes calculated at checkout</p>
+            <a href="checkout.html" class="btn btn-primary btn-full" onclick="window.closeCart()">Checkout</a>
+            <p class="cart-note">Shipping & taxes calculated at checkout</p>
         </div>
     </div>
 
@@ -430,7 +303,7 @@
     <div class="wishlist-overlay" id="wishlistOverlay"></div>
     <div class="wishlist-sidebar" id="wishlistSidebar">
         <div class="wishlist-header">
-            <h3 data-i18n="cart.wishlist">Your Wishlist</h3>
+            <h3>Your Wishlist</h3>
             <button class="wishlist-close" id="wishlistClose">×</button>
         </div>
         <div class="wishlist-items" id="wishlistItems">
@@ -438,8 +311,8 @@
                 <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1">
                     <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
                 </svg>
-                <p data-i18n="cart.wishlistEmpty">Your wishlist is empty</p>
-                <a href="shop.html" class="btn btn-secondary" onclick="window.closeWishlist()" data-i18n="cart.startShopping">Start Shopping</a>
+                <p>Your wishlist is empty</p>
+                <a href="shop.html" class="btn btn-secondary" onclick="window.closeWishlist()">Start Shopping</a>
             </div>
         </div>
     </div>
@@ -449,10 +322,7 @@
 
     <!-- Scripts -->
     <script src="products.js?v=2"></script>
-    <script src="translations.js?v=2"></script>
-    <script src="i18n.js?v=2"></script>
     <script src="cart.js?v=2"></script>
-    <script src="utils.js"></script>
-    <script src="product.js?v=3"></script>
+    <script src="product.js?v=2"></script>
 </body>
 </html>

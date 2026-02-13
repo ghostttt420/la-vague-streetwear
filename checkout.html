@@ -18,7 +18,7 @@
     <!-- Announcement Bar -->
     <div class="announcement-bar">
         <div class="announcement-content">
-            <span data-i18n="announcement.freeShipping">FREE SHIPPING ON ORDERS OVER $150</span>
+            <span>FREE SHIPPING ON ORDERS OVER $150</span>
         </div>
     </div>
 
@@ -29,23 +29,15 @@
                 <span class="logo-text">LA VAGUE</span>
             </a>
             <ul class="nav-links">
-                <li><a href="shop.html" class="nav-link" data-i18n="checkout.continueShopping">Continue Shopping</a></li>
+                <li><a href="shop.html" class="nav-link">Continue Shopping</a></li>
             </ul>
             <div class="nav-actions">
-                <div class="currency-selector">
-                    <select id="currencySelect" aria-label="Select currency">
-                        <option value="USD">USD</option>
-                        <option value="NGN">NGN</option>
-                        <option value="EUR">EUR</option>
-                        <option value="GBP">GBP</option>
-                    </select>
-                </div>
                 <span class="secure-badge">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
                         <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
                     </svg>
-                    <span data-i18n="checkout.secure">Secure Checkout</span>
+                    Secure Checkout
                 </span>
             </div>
         </div>
@@ -58,43 +50,43 @@
                 <!-- Checkout Form -->
                 <div class="checkout-form">
                     <div class="checkout-section" id="contactSection">
-                        <h2 class="checkout-title" data-i18n="checkout.contact">Contact</h2>
+                        <h2 class="checkout-title">Contact</h2>
                         <div class="form-group">
-                            <label for="email" data-i18n="checkout.email">Email</label>
+                            <label for="email">Email</label>
                             <input type="email" id="email" placeholder="your@email.com" required>
                         </div>
                         <label class="checkbox-label">
                             <input type="checkbox" id="newsletter">
-                            <span data-i18n="checkout.newsletter">Email me with news and offers</span>
+                            <span>Email me with news and offers</span>
                         </label>
                     </div>
 
                     <div class="checkout-section" id="shippingSection">
-                        <h2 class="checkout-title" data-i18n="checkout.shippingAddress">Shipping Address</h2>
+                        <h2 class="checkout-title">Shipping Address</h2>
                         <div class="form-row">
                             <div class="form-group">
-                                <label for="firstName" data-i18n="checkout.firstName">First Name</label>
+                                <label for="firstName">First Name</label>
                                 <input type="text" id="firstName" required>
                             </div>
                             <div class="form-group">
-                                <label for="lastName" data-i18n="checkout.lastName">Last Name</label>
+                                <label for="lastName">Last Name</label>
                                 <input type="text" id="lastName" required>
                             </div>
                         </div>
                         <div class="form-group">
-                            <label for="address" data-i18n="checkout.address">Address</label>
+                            <label for="address">Address</label>
                             <input type="text" id="address" placeholder="Street address" required>
                         </div>
                         <div class="form-group">
-                            <input type="text" id="apartment" placeholder="Apartment, suite, etc. (optional)" data-i18n-placeholder="checkout.apartment">
+                            <input type="text" id="apartment" placeholder="Apartment, suite, etc. (optional)">
                         </div>
                         <div class="form-row three-col">
                             <div class="form-group">
-                                <label for="city" data-i18n="checkout.city">City</label>
+                                <label for="city">City</label>
                                 <input type="text" id="city" required>
                             </div>
                             <div class="form-group">
-                                <label for="state" data-i18n="checkout.state">State</label>
+                                <label for="state">State</label>
                                 <select id="state" required>
                                     <option value="">Select</option>
                                     <option value="LA">Lagos</option>
@@ -105,12 +97,12 @@
                                 </select>
                             </div>
                             <div class="form-group">
-                                <label for="zip" data-i18n="checkout.zip">ZIP Code</label>
+                                <label for="zip">ZIP Code</label>
                                 <input type="text" id="zip" required>
                             </div>
                         </div>
                         <div class="form-group">
-                            <label for="phone" data-i18n="checkout.phone">Phone</label>
+                            <label for="phone">Phone</label>
                             <input type="tel" id="phone" placeholder="For delivery updates" required>
                         </div>
                     </div>
@@ -132,18 +124,18 @@
                                     <span class="shipping-name">Express Shipping</span>
                                     <span class="shipping-time">1-2 business days</span>
                                 </div>
-                                <span class="shipping-price" id="expressShipping">$25.00</span>
+                                <span class="shipping-price">$25.00</span>
                             </label>
                         </div>
                     </div>
 
                     <div class="checkout-section" id="paymentSection">
-                        <h2 class="checkout-title" data-i18n="checkout.payment">Payment</h2>
-                        <p class="payment-note" data-i18n="checkout.secureNote">All transactions are secure and encrypted.</p>
+                        <h2 class="checkout-title">Payment</h2>
+                        <p class="payment-note">All transactions are secure and encrypted.</p>
                         <div class="payment-methods">
                             <label class="payment-method active">
                                 <input type="radio" name="payment" value="card" checked>
-                                <span data-i18n="checkout.creditCard">Credit Card</span>
+                                <span>Credit Card</span>
                                 <div class="card-icons">
                                     <span class="card-icon">VISA</span>
                                     <span class="card-icon">MC</span>
@@ -152,62 +144,62 @@
                         </div>
                         <div class="card-form">
                             <div class="form-group">
-                                <label for="cardNumber" data-i18n="checkout.cardNumber">Card Number</label>
+                                <label for="cardNumber">Card Number</label>
                                 <input type="text" id="cardNumber" placeholder="1234 5678 9012 3456" maxlength="19">
                             </div>
                             <div class="form-row">
                                 <div class="form-group">
-                                    <label for="expiry" data-i18n="checkout.expiry">Expiration Date</label>
+                                    <label for="expiry">Expiration Date</label>
                                     <input type="text" id="expiry" placeholder="MM / YY" maxlength="7">
                                 </div>
                                 <div class="form-group">
-                                    <label for="cvv" data-i18n="checkout.cvv">CVV</label>
+                                    <label for="cvv">CVV</label>
                                     <input type="text" id="cvv" placeholder="123" maxlength="4">
                                 </div>
                             </div>
                             <div class="form-group">
-                                <label for="cardName" data-i18n="checkout.nameOnCard">Name on Card</label>
+                                <label for="cardName">Name on Card</label>
                                 <input type="text" id="cardName" placeholder="Full name">
                             </div>
                         </div>
                         <label class="checkbox-label">
                             <input type="checkbox" id="saveInfo">
-                            <span data-i18n="checkout.saveInfo">Save this information for next time</span>
+                            <span>Save this information for next time</span>
                         </label>
                     </div>
 
-                    <button class="btn-checkout" id="placeOrderBtn" data-i18n="checkout.completeOrder">Complete Order</button>
+                    <button class="btn-checkout" id="placeOrderBtn">Complete Order</button>
                     <p class="checkout-footer-note">
-                        <span data-i18n="checkout.termsNote">By placing your order, you agree to our</span> <a href="#">Terms of Service</a> <span data-i18n="common.and">and</span> <a href="#">Privacy Policy</a>.
+                        By placing your order, you agree to our <a href="#">Terms of Service</a> and <a href="#">Privacy Policy</a>.
                     </p>
                 </div>
 
                 <!-- Order Summary -->
                 <div class="checkout-sidebar">
                     <div class="order-summary" id="orderSummary">
-                        <h3 class="summary-title" data-i18n="checkout.orderSummary">Order Summary</h3>
+                        <h3 class="summary-title">Order Summary</h3>
                         <div class="summary-items" id="summaryItems">
                             <!-- Items loaded dynamically -->
                         </div>
                         <div class="summary-discount">
-                            <input type="text" id="discountCode" placeholder="Discount code" data-i18n-placeholder="checkout.discountCode">
-                            <button id="applyDiscount" data-i18n="checkout.apply">Apply</button>
+                            <input type="text" id="discountCode" placeholder="Discount code">
+                            <button id="applyDiscount">Apply</button>
                         </div>
                         <div class="summary-totals">
                             <div class="summary-line">
-                                <span data-i18n="checkout.subtotal">Subtotal</span>
+                                <span>Subtotal</span>
                                 <span id="summarySubtotal">$0.00</span>
                             </div>
                             <div class="summary-line">
-                                <span data-i18n="checkout.shipping">Shipping</span>
+                                <span>Shipping</span>
                                 <span id="summaryShipping">$10.00</span>
                             </div>
                             <div class="summary-line discount" id="discountLine" style="display: none;">
-                                <span data-i18n="checkout.discount">Discount</span>
+                                <span>Discount</span>
                                 <span id="summaryDiscount">-$0.00</span>
                             </div>
                             <div class="summary-line total">
-                                <span data-i18n="checkout.total">Total</span>
+                                <span>Total</span>
                                 <span class="total-price" id="summaryTotal">$0.00</span>
                             </div>
                         </div>
@@ -221,22 +213,22 @@
     <div class="cart-overlay" id="cartOverlay"></div>
     <div class="cart-sidebar" id="cartSidebar">
         <div class="cart-header">
-            <h3 data-i18n="cart.title">Your Cart</h3>
+            <h3>Your Cart</h3>
             <button class="cart-close" id="cartClose">×</button>
         </div>
         <div class="cart-items" id="cartItems">
             <div class="cart-empty">
-                <p data-i18n="cart.empty">Your cart is empty</p>
-                <a href="shop.html" class="btn btn-secondary" onclick="window.closeCart()" data-i18n="cart.continueShopping">Continue Shopping</a>
+                <p>Your cart is empty</p>
+                <a href="shop.html" class="btn btn-secondary" onclick="window.closeCart()">Continue Shopping</a>
             </div>
         </div>
         <div class="cart-footer" id="cartFooter">
             <div class="cart-subtotal">
-                <span data-i18n="cart.subtotal">Subtotal</span>
+                <span>Subtotal</span>
                 <span id="cartSubtotal">$0</span>
             </div>
-            <a href="checkout.html" class="btn btn-primary btn-full" onclick="window.closeCart()" data-i18n="cart.checkout">Checkout</a>
-            <p class="cart-note" data-i18n="cart.note">Shipping & taxes calculated at checkout</p>
+            <a href="checkout.html" class="btn btn-primary btn-full" onclick="window.closeCart()">Checkout</a>
+            <p class="cart-note">Shipping & taxes calculated at checkout</p>
         </div>
     </div>
 
@@ -244,7 +236,7 @@
     <div class="wishlist-overlay" id="wishlistOverlay"></div>
     <div class="wishlist-sidebar" id="wishlistSidebar">
         <div class="wishlist-header">
-            <h3 data-i18n="cart.wishlist">Your Wishlist</h3>
+            <h3>Your Wishlist</h3>
             <button class="wishlist-close" id="wishlistClose">×</button>
         </div>
         <div class="wishlist-items" id="wishlistItems">
@@ -252,8 +244,8 @@
                 <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1">
                     <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
                 </svg>
-                <p data-i18n="cart.wishlistEmpty">Your wishlist is empty</p>
-                <a href="shop.html" class="btn btn-secondary" onclick="window.closeWishlist()" data-i18n="cart.startShopping">Start Shopping</a>
+                <p>Your wishlist is empty</p>
+                <a href="shop.html" class="btn btn-secondary" onclick="window.closeWishlist()">Start Shopping</a>
             </div>
         </div>
     </div>
@@ -262,10 +254,7 @@
     <div class="toast-container" id="toastContainer"></div>
 
     <script src="products.js"></script>
-    <script src="translations.js"></script>
-    <script src="i18n.js"></script>
     <script src="cart.js"></script>
-    <script src="utils.js"></script>
-    <script src="checkout.js?v=3"></script>
+    <script src="checkout.js?v=2"></script>
 </body>
 </html>

@@ -48,20 +48,6 @@ const ProductDetailAPI = {
         } catch (error) {
             return { available: 999, inStock: true };
         }
-    },
-    
-    async joinWaitlist(productId, color, size, email, name) {
-        try {
-            const response = await fetch(`${API_URL}/waitlist/join`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ productId, color, size, email, name })
-            });
-            const data = await response.json();
-            return { success: response.ok, ...data };
-        } catch (error) {
-            return { success: false, error: error.message };
-        }
     }
 };
 
@@ -219,9 +205,6 @@ document.addEventListener('DOMContentLoaded', () => {
         CartState.updateWishlistCount();
         updateWishlistButton();
         
-        // Initialize reviews
-        initReviews(state.product.id);
-        
         // Bind events
         bindEvents();
         
@@ -244,8 +227,8 @@ document.addEventListener('DOMContentLoaded', () => {
         // Info
         elements.productCategory.textContent = CATEGORIES.find(c => c.id === p.category)?.name;
         elements.productTitle.textContent = p.name;
-        elements.productPrice.textContent = CurrencyConfig.formatPrice(p.price);
-        elements.productOriginalPrice.textContent = p.compareAtPrice ? CurrencyConfig.formatPrice(p.compareAtPrice) : '';
+        elements.productPrice.textContent = `$${p.price}`;
+        elements.productOriginalPrice.textContent = p.compareAtPrice ? `$${p.compareAtPrice}` : '';
         elements.productShortDesc.textContent = p.description;
         elements.productDescription.textContent = p.description;
         
@@ -270,165 +253,6 @@ document.addEventListener('DOMContentLoaded', () => {
         // Show/hide size guide
         if (!p.sizeGuide) {
             elements.sizeGuideBtn.style.display = 'none';
-        }
-        
-        // Check stock status and render waitlist if needed
-        checkAndRenderWaitlist();
-    }
-    
-    async function checkAndRenderWaitlist() {
-        const p = state.product;
-        const variantKey = `${state.selectedColor}-${state.selectedSize}`;
-        const stock = p.inventory[variantKey] || 0;
-        
-        // Remove existing waitlist UI
-        const existingWaitlist = document.getElementById('waitlistSection');
-        if (existingWaitlist) {
-            existingWaitlist.remove();
-        }
-        
-        if (stock === 0) {
-            // Show waitlist UI
-            const waitlistHTML = `
-                <div id="waitlistSection" class="waitlist-section" style="
-                    margin-top: 1.5rem;
-                    padding: 1.25rem;
-                    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-                    border-radius: 12px;
-                    border: 1px solid #dee2e6;
-                ">
-                    <div class="waitlist-header" style="
-                        display: flex;
-                        align-items: center;
-                        gap: 0.75rem;
-                        margin-bottom: 1rem;
-                    ">
-                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#e74c3c" stroke-width="2">
-                            <circle cx="12" cy="12" r="10"></circle>
-                            <line x1="12" y1="8" x2="12" y2="12"></line>
-                            <line x1="12" y1="16" x2="12.01" y2="16"></line>
-                        </svg>
-                        <div>
-                            <p style="font-weight: 600; color: #212529; margin: 0;">Out of Stock</p>
-                            <p style="font-size: 0.875rem; color: #6c757d; margin: 0;">Get notified when this item is back in stock</p>
-                        </div>
-                    </div>
-                    <div class="waitlist-form" style="display: flex; gap: 0.75rem; flex-wrap: wrap;">
-                        <input 
-                            type="email" 
-                            id="waitlistEmail" 
-                            placeholder="Enter your email" 
-                            style="
-                                flex: 1;
-                                min-width: 200px;
-                                padding: 0.75rem 1rem;
-                                border: 1px solid #ced4da;
-                                border-radius: 8px;
-                                font-size: 0.9375rem;
-                            "
-                        >
-                        <button 
-                            id="waitlistBtn"
-                            style="
-                                padding: 0.75rem 1.5rem;
-                                background: #212529;
-                                color: #fff;
-                                border: none;
-                                border-radius: 8px;
-                                font-weight: 500;
-                                cursor: pointer;
-                                white-space: nowrap;
-                            "
-                        >
-                            Notify Me
-                        </button>
-                    </div>
-                    <p id="waitlistMessage" style="margin-top: 0.75rem; font-size: 0.875rem; display: none;"></p>
-                </div>
-            `;
-            
-            // Insert after add to cart button
-            elements.addToCartBtn.parentElement.insertAdjacentHTML('afterend', waitlistHTML);
-            
-            // Bind waitlist events
-            document.getElementById('waitlistBtn').addEventListener('click', handleWaitlistSignup);
-            document.getElementById('waitlistEmail').addEventListener('keypress', (e) => {
-                if (e.key === 'Enter') handleWaitlistSignup();
-            });
-            
-            // Disable add to cart
-            elements.addToCartBtn.disabled = true;
-            elements.addToCartBtn.style.opacity = '0.5';
-            elements.addToCartBtn.innerHTML = `
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M6 6h15l-1.5 9h-12z"></path>
-                    <circle cx="9" cy="20" r="1"></circle>
-                    <circle cx="18" cy="20" r="1"></circle>
-                    <path d="M6 6L5 3H2"></path>
-                </svg>
-                <span>Out of Stock</span>
-            `;
-        } else {
-            // Enable add to cart
-            elements.addToCartBtn.disabled = false;
-            elements.addToCartBtn.style.opacity = '1';
-            elements.addToCartBtn.innerHTML = `
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M6 6h15l-1.5 9h-12z"></path>
-                    <circle cx="9" cy="20" r="1"></circle>
-                    <circle cx="18" cy="20" r="1"></circle>
-                    <path d="M6 6L5 3H2"></path>
-                </svg>
-                <span data-i18n="product.addToCart">Add to Cart</span>
-            `;
-        }
-    }
-    
-    async function handleWaitlistSignup() {
-        const emailInput = document.getElementById('waitlistEmail');
-        const messageEl = document.getElementById('waitlistMessage');
-        const email = emailInput.value.trim();
-        
-        if (!email) {
-            messageEl.textContent = 'Please enter your email address';
-            messageEl.style.color = '#e74c3c';
-            messageEl.style.display = 'block';
-            return;
-        }
-        
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        if (!emailRegex.test(email)) {
-            messageEl.textContent = 'Please enter a valid email address';
-            messageEl.style.color = '#e74c3c';
-            messageEl.style.display = 'block';
-            return;
-        }
-        
-        const btn = document.getElementById('waitlistBtn');
-        btn.disabled = true;
-        btn.textContent = 'Adding...';
-        
-        const result = await ProductDetailAPI.joinWaitlist(
-            state.product.id,
-            state.selectedColor,
-            state.selectedSize,
-            email
-        );
-        
-        if (result.success) {
-            messageEl.textContent = 'You\'ll be notified when this item is back in stock!';
-            messageEl.style.color = '#27ae60';
-            messageEl.style.display = 'block';
-            emailInput.value = '';
-            btn.textContent = 'Added!';
-            
-            showToast('Added to waitlist successfully!', 'success');
-        } else {
-            messageEl.textContent = result.error || 'Something went wrong. Please try again.';
-            messageEl.style.color = '#e74c3c';
-            messageEl.style.display = 'block';
-            btn.disabled = false;
-            btn.textContent = 'Notify Me';
         }
     }
 
@@ -518,8 +342,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     <p class="product-category">${CATEGORIES.find(c => c.id === product.category)?.name}</p>
                     <h3 class="product-name">${product.name}</h3>
                     <div class="product-price">
-                        <span class="current-price">${CurrencyConfig.formatPrice(product.price)}</span>
-                        ${product.compareAtPrice ? `<span class="original-price">${CurrencyConfig.formatPrice(product.compareAtPrice)}</span>` : ''}
+                        <span class="current-price">$${product.price}</span>
+                        ${product.compareAtPrice ? `<span class="original-price">$${product.compareAtPrice}</span>` : ''}
                     </div>
                 </div>
             </article>
@@ -538,7 +362,6 @@ document.addEventListener('DOMContentLoaded', () => {
         state.selectedColor = colorName;
         elements.selectedColor.textContent = colorName;
         renderSizes();
-        checkAndRenderWaitlist();
         
         // Update main image if color has specific image
         const color = state.product.colors.find(c => c.name === colorName);
@@ -550,7 +373,6 @@ document.addEventListener('DOMContentLoaded', () => {
     window.selectSize = function(size) {
         state.selectedSize = size;
         renderSizes();
-        checkAndRenderWaitlist();
     };
 
     function updateQuantity(delta) {
@@ -598,18 +420,6 @@ document.addEventListener('DOMContentLoaded', () => {
         state.quantity = 1;
         elements.quantity.textContent = 1;
         elements.qtyMinus.disabled = true;
-        
-        // Update button text with translation
-        const addToCartText = (typeof I18n !== 'undefined') ? I18n.t('product.addToCart') : 'Add to Cart';
-        elements.addToCartBtn.innerHTML = `
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M6 6h15l-1.5 9h-12z"></path>
-                <circle cx="9" cy="20" r="1"></circle>
-                <circle cx="18" cy="20" r="1"></circle>
-                <path d="M6 6L5 3H2"></path>
-            </svg>
-            <span>${addToCartText}</span>
-        `;
     }
 
     // ==========================================
@@ -651,7 +461,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     `).join('')}
                 </tbody>
             </table>
-            <div class="size-note" data-i18n="sizeGuide.note">
+            <div class="size-note">
                 <strong>Note:</strong> Measurements may vary slightly. For the best fit, measure a similar garment you own and compare.
             </div>
         `;
@@ -705,7 +515,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     <h4>${product.name}</h4>
                     <p>${CATEGORIES.find(c => c.id === product.category)?.name}</p>
                 </div>
-                <span class="search-result-price">${CurrencyConfig.formatPrice(product.price)}</span>
+                <span class="search-result-price">$${product.price}</span>
             </div>
         `).join('');
     }
@@ -776,14 +586,14 @@ document.addEventListener('DOMContentLoaded', () => {
         elements.sizeGuideClose?.addEventListener('click', closeSizeGuide);
         elements.sizeGuideOverlay?.addEventListener('click', closeSizeGuide);
         
-        // Search with debouncing
+        // Search
         elements.searchBtn?.addEventListener('click', openSearch);
         elements.searchClose?.addEventListener('click', closeSearch);
         
-        // Use SearchHelper for consistent debouncing
-        SearchHelper.init(elements.searchInput, handleSearch, {
-            delay: 300,
-            minLength: 1
+        let searchTimeout;
+        elements.searchInput?.addEventListener('input', (e) => {
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(() => handleSearch(e.target.value), 300);
         });
         
         // Accordion
@@ -831,7 +641,6 @@ document.addEventListener('DOMContentLoaded', () => {
             if (e.key === 'Escape') {
                 closeSearch();
                 closeSizeGuide();
-                closeReviewModal();
             }
             
             if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
@@ -879,7 +688,7 @@ document.addEventListener('DOMContentLoaded', () => {
                                 <span>${item.quantity}</span>
                                 <button onclick="window.productUpdateCartQty(${index}, 1)">+</button>
                             </div>
-                            <span class="cart-item-price">${CurrencyConfig.formatPrice(item.price * item.quantity)}</span>
+                            <span class="cart-item-price">$${item.price * item.quantity}</span>
                         </div>
                     </div>
                     <button class="cart-item-remove" onclick="window.productRemoveFromCart(${index})">×</button>
@@ -887,7 +696,7 @@ document.addEventListener('DOMContentLoaded', () => {
             `).join('');
         }
         const subtotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-        elements.cartSubtotal.textContent = CurrencyConfig.formatPrice(subtotal);
+        elements.cartSubtotal.textContent = `$${subtotal}`;
     };
     
     window.productUpdateCartQty = function(index, delta) {
@@ -924,7 +733,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 </div>
                 <div class="wishlist-item-details">
                     <h4 onclick="window.location.href='product.html?slug=${product.slug}'">${product.name}</h4>
-                    <p class="wishlist-item-price">${CurrencyConfig.formatPrice(product.price)}</p>
+                    <p class="wishlist-item-price">$${product.price}</p>
                     <div class="wishlist-item-actions">
                         <button class="btn-add-cart-sm" onclick="window.productAddToCartFromWishlist('${product.id}')">Add to Cart</button>
                         <button class="btn-remove-sm" onclick="window.productRemoveFromWishlist('${product.id}')">Remove</button>
@@ -959,520 +768,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
-    // Initialize currency selector
-    initCurrencySelector();
-    
-    // Listen for currency changes
-    window.addEventListener('currencyChanged', () => {
-        if (state.product) {
-            renderProduct();
-            renderRelatedProducts();
-        }
-        CartState.renderCart();
-        CartState.renderWishlist();
-    });
-    
     // Start
     init();
 });
-
-// ==========================================
-// CURRENCY SELECTOR
-// ==========================================
-function initCurrencySelector() {
-    const currencySelect = document.getElementById('currencySelect');
-    if (currencySelect) {
-        // Set initial value from localStorage
-        const currentCurrency = CurrencyConfig.getCurrentCurrency();
-        currencySelect.value = currentCurrency;
-        
-        // Handle currency change
-        currencySelect.addEventListener('change', (e) => {
-            CurrencyConfig.setCurrency(e.target.value);
-        });
-    }
-}
-
-// ==========================================
-// REVIEWS SYSTEM
-// ==========================================
-const ReviewsAPI = {
-    async getReviews(productId, sort = 'newest', filter = 'all', limit = 10, offset = 0) {
-        try {
-            const response = await fetch(`${API_URL}/reviews/${productId}?sort=${sort}&filter=${filter}&limit=${limit}&offset=${offset}`);
-            if (!response.ok) throw new Error('Failed to fetch reviews');
-            return await response.json();
-        } catch (error) {
-            console.error('[Reviews] Error:', error.message);
-            return null;
-        }
-    },
-    
-    async validateToken(token) {
-        try {
-            const response = await fetch(`${API_URL}/reviews/validate/${token}`);
-            if (!response.ok) throw new Error('Invalid token');
-            return await response.json();
-        } catch (error) {
-            console.error('[Reviews] Token validation error:', error.message);
-            return null;
-        }
-    },
-    
-    async submitReview(formData) {
-        try {
-            const response = await fetch(`${API_URL}/reviews/submit`, {
-                method: 'POST',
-                body: formData
-            });
-            if (!response.ok) {
-                const error = await response.json();
-                throw new Error(error.error || 'Failed to submit review');
-            }
-            return await response.json();
-        } catch (error) {
-            console.error('[Reviews] Submit error:', error.message);
-            throw error;
-        }
-    }
-};
-
-// Reviews State
-const reviewsState = {
-    reviews: [],
-    stats: null,
-    sort: 'newest',
-    filter: 'all',
-    page: 0,
-    limit: 10,
-    hasMore: true,
-    reviewToken: null,
-    selectedRating: 0,
-    reviewPhotos: []
-};
-
-// Generate star rating HTML
-function generateStarRatingHTML(rating, size = 'small') {
-    const fullStars = Math.floor(rating);
-    const hasHalfStar = rating % 1 >= 0.5;
-    const emptyStars = 5 - fullStars - (hasHalfStar ? 1 : 0);
-    const dimension = size === 'large' ? 24 : 16;
-    
-    let html = '';
-    
-    for (let i = 0; i < fullStars; i++) {
-        html += `<svg width="${dimension}" height="${dimension}" viewBox="0 0 24 24" fill="#d4af37" stroke="#d4af37" stroke-width="1"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>`;
-    }
-    
-    if (hasHalfStar) {
-        html += `<svg width="${dimension}" height="${dimension}" viewBox="0 0 24 24" stroke="#d4af37" stroke-width="1"><defs><linearGradient id="halfStar${rating}"><stop offset="50%" stop-color="#d4af37"/><stop offset="50%" stop-color="transparent"/></linearGradient></defs><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" fill="url(#halfStar${rating})"/></svg>`;
-    }
-    
-    for (let i = 0; i < emptyStars; i++) {
-        html += `<svg width="${dimension}" height="${dimension}" viewBox="0 0 24 24" fill="none" stroke="#d4af37" stroke-width="1"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>`;
-    }
-    
-    return html;
-}
-
-// Load and display reviews
-async function loadReviews(productId) {
-    const reviewsList = document.getElementById('reviewsList');
-    const reviewsFilters = document.getElementById('reviewsFilters');
-    const reviewsSummary = document.getElementById('reviewsSummary');
-    
-    if (!reviewsList) return;
-    
-    reviewsList.innerHTML = '<div class="reviews-loading">Loading reviews...</div>';
-    
-    const result = await ReviewsAPI.getReviews(
-        productId, 
-        reviewsState.sort, 
-        reviewsState.filter,
-        reviewsState.limit,
-        reviewsState.page * reviewsState.limit
-    );
-    
-    if (!result || !result.success) {
-        reviewsList.innerHTML = '<div class="reviews-loading">Unable to load reviews</div>';
-        return;
-    }
-    
-    reviewsState.reviews = result.reviews;
-    reviewsState.stats = result.stats;
-    
-    // Show/hide filters based on review count
-    if (result.stats.total === 0) {
-        reviewsFilters.style.display = 'none';
-        reviewsList.innerHTML = `
-            <div class="no-reviews">
-                <p>No reviews yet</p>
-                <p class="text-muted">Be the first to review this product!</p>
-            </div>
-        `;
-    } else {
-        reviewsFilters.style.display = 'flex';
-        renderReviews();
-    }
-    
-    // Render summary
-    renderReviewSummary();
-}
-
-// Render review summary
-function renderReviewSummary() {
-    const stats = reviewsState.stats;
-    if (!stats) return;
-    
-    const avgRatingBig = document.getElementById('avgRatingBig');
-    const avgRatingStars = document.getElementById('avgRatingStars');
-    const reviewsCountText = document.getElementById('reviewsCountText');
-    const ratingBreakdown = document.getElementById('ratingBreakdown');
-    
-    if (avgRatingBig) avgRatingBig.textContent = stats.averageRating.toFixed(1);
-    if (avgRatingStars) avgRatingStars.innerHTML = generateStarRatingHTML(stats.averageRating, 'large');
-    if (reviewsCountText) reviewsCountText.textContent = `Based on ${stats.total} review${stats.total !== 1 ? 's' : ''}`;
-    
-    if (ratingBreakdown) {
-        const total = stats.total;
-        ratingBreakdown.innerHTML = [5, 4, 3, 2, 1].map(star => {
-            const count = stats.distribution[star] || 0;
-            const percentage = total > 0 ? (count / total) * 100 : 0;
-            return `
-                <div class="rating-bar">
-                    <span class="rating-bar-label">${star} star</span>
-                    <div class="rating-bar-track">
-                        <div class="rating-bar-fill" style="width: ${percentage}%"></div>
-                    </div>
-                    <span class="rating-bar-count">${count}</span>
-                </div>
-            `;
-        }).join('');
-    }
-}
-
-// Render reviews list
-function renderReviews() {
-    const reviewsList = document.getElementById('reviewsList');
-    if (!reviewsList) return;
-    
-    if (reviewsState.reviews.length === 0) {
-        reviewsList.innerHTML = '<div class="no-reviews">No reviews match your filters</div>';
-        return;
-    }
-    
-    reviewsList.innerHTML = reviewsState.reviews.map(review => {
-        const date = new Date(review.created_at).toLocaleDateString('en-US', {
-            year: 'numeric',
-            month: 'long',
-            day: 'numeric'
-        });
-        
-        const initials = review.customer_name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
-        
-        const photosHtml = review.photos && review.photos.length > 0 ? `
-            <div class="review-photos">
-                ${review.photos.map(photo => `
-                    <img src="${photo}" alt="Review photo" class="review-photo" onclick="window.openPhotoModal('${photo}')">
-                `).join('')}
-            </div>
-        ` : '';
-        
-        return `
-            <div class="review-item">
-                <div class="review-header">
-                    <div class="review-author">
-                        <div class="review-avatar">${initials}</div>
-                        <div class="review-meta">
-                            <h4>${review.customer_name}</h4>
-                            <div class="review-rating">
-                                ${generateStarRatingHTML(review.rating)}
-                            </div>
-                        </div>
-                    </div>
-                    <div class="review-date">
-                        ${date}
-                        ${review.verified_purchase ? `
-                            <span class="review-verified">
-                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
-                                    <polyline points="20 6 9 17 4 12"></polyline>
-                                </svg>
-                                Verified Purchase
-                            </span>
-                        ` : ''}
-                    </div>
-                </div>
-                ${review.title ? `<h4 class="review-title">${review.title}</h4>` : ''}
-                <p class="review-text">${review.text}</p>
-                ${photosHtml}
-            </div>
-        `;
-    }).join('');
-}
-
-// Initialize reviews section
-function initReviews(productId) {
-    // Check for review token in URL
-    const urlParams = new URLSearchParams(window.location.search);
-    const token = urlParams.get('review_token');
-    
-    if (token) {
-        reviewsState.reviewToken = token;
-        validateAndShowReviewModal(token);
-    }
-    
-    // Load reviews
-    loadReviews(productId);
-    
-    // Bind review filter events
-    const reviewSort = document.getElementById('reviewSort');
-    const filterBtns = document.querySelectorAll('.filter-btn[data-filter]');
-    const writeReviewBtn = document.getElementById('writeReviewBtn');
-    
-    if (reviewSort) {
-        reviewSort.addEventListener('change', (e) => {
-            reviewsState.sort = e.target.value;
-            reviewsState.page = 0;
-            loadReviews(productId);
-        });
-    }
-    
-    filterBtns.forEach(btn => {
-        btn.addEventListener('click', () => {
-            filterBtns.forEach(b => b.classList.remove('active'));
-            btn.classList.add('active');
-            reviewsState.filter = btn.dataset.filter;
-            reviewsState.page = 0;
-            loadReviews(productId);
-        });
-    });
-    
-    if (writeReviewBtn) {
-        writeReviewBtn.addEventListener('click', () => openReviewModal());
-    }
-    
-    // Initialize review modal events
-    initReviewModal();
-}
-
-// Validate token and show modal
-async function validateAndShowReviewModal(token) {
-    const result = await ReviewsAPI.validateToken(token);
-    
-    if (!result) {
-        showToast('Invalid or expired review link', 'error');
-        return;
-    }
-    
-    // Show review modal
-    openReviewModal(result.product, token);
-}
-
-// Open review modal
-function openReviewModal(product = null, token = null) {
-    const modal = document.getElementById('reviewModal');
-    const overlay = document.getElementById('reviewOverlay');
-    const productInfo = document.getElementById('reviewProductInfo');
-    const tokenInput = document.getElementById('reviewToken');
-    
-    if (!modal) return;
-    
-    if (product) {
-        productInfo.innerHTML = `
-            <img src="${product.images?.[0]?.src || ''}" alt="${product.name}">
-            <h4>${product.name}</h4>
-        `;
-    } else if (window.state && window.state.product) {
-        const p = window.state.product;
-        productInfo.innerHTML = `
-            <img src="${p.images?.[0]?.src || ''}" alt="${p.name}">
-            <h4>${p.name}</h4>
-        `;
-    }
-    
-    if (token) {
-        tokenInput.value = token;
-    }
-    
-    modal.classList.add('active');
-    overlay.classList.add('active');
-    document.body.style.overflow = 'hidden';
-}
-
-// Close review modal
-function closeReviewModal() {
-    const modal = document.getElementById('reviewModal');
-    const overlay = document.getElementById('reviewOverlay');
-    
-    if (modal) modal.classList.remove('active');
-    if (overlay) overlay.classList.remove('active');
-    document.body.style.overflow = '';
-    
-    // Reset form
-    resetReviewForm();
-}
-
-// Reset review form
-function resetReviewForm() {
-    const form = document.getElementById('reviewForm');
-    const starInput = document.getElementById('starRatingInput');
-    const photoPreview = document.getElementById('reviewPhotoPreview');
-    
-    if (form) form.reset();
-    
-    reviewsState.selectedRating = 0;
-    reviewsState.reviewPhotos = [];
-    
-    if (starInput) {
-        starInput.querySelectorAll('button').forEach(btn => {
-            btn.classList.remove('active');
-            btn.querySelector('svg').setAttribute('fill', 'none');
-        });
-    }
-    
-    if (photoPreview) photoPreview.innerHTML = '';
-    
-    const ratingLabel = document.getElementById('ratingLabel');
-    if (ratingLabel) ratingLabel.textContent = 'Select a rating';
-}
-
-// Initialize review modal events
-function initReviewModal() {
-    const closeBtn = document.getElementById('reviewModalClose');
-    const overlay = document.getElementById('reviewOverlay');
-    const form = document.getElementById('reviewForm');
-    const starBtns = document.querySelectorAll('#starRatingInput button');
-    const photoUpload = document.getElementById('photoUploadZone');
-    const photoInput = document.getElementById('reviewPhotos');
-    
-    if (closeBtn) closeBtn.addEventListener('click', closeReviewModal);
-    if (overlay) overlay.addEventListener('click', closeReviewModal);
-    
-    // Star rating
-    starBtns.forEach(btn => {
-        btn.addEventListener('click', () => {
-            const rating = parseInt(btn.dataset.rating);
-            reviewsState.selectedRating = rating;
-            
-            starBtns.forEach((b, i) => {
-                if (i < rating) {
-                    b.classList.add('active');
-                    b.querySelector('svg').setAttribute('fill', '#d4af37');
-                } else {
-                    b.classList.remove('active');
-                    b.querySelector('svg').setAttribute('fill', 'none');
-                }
-            });
-            
-            const labels = ['Poor', 'Fair', 'Average', 'Good', 'Excellent'];
-            const ratingLabel = document.getElementById('ratingLabel');
-            if (ratingLabel) ratingLabel.textContent = labels[rating - 1];
-        });
-    });
-    
-    // Photo upload
-    if (photoUpload && photoInput) {
-        photoUpload.addEventListener('click', () => photoInput.click());
-        
-        photoInput.addEventListener('change', (e) => {
-            const files = Array.from(e.target.files);
-            const remainingSlots = 5 - reviewsState.reviewPhotos.length;
-            
-            if (files.length > remainingSlots) {
-                showToast(`You can only upload up to 5 photos`, 'error');
-            }
-            
-            const toAdd = files.slice(0, remainingSlots);
-            
-            toAdd.forEach(file => {
-                if (!file.type.startsWith('image/')) return;
-                
-                const reader = new FileReader();
-                reader.onload = (e) => {
-                    reviewsState.reviewPhotos.push({ file, preview: e.target.result });
-                    updatePhotoPreview();
-                };
-                reader.readAsDataURL(file);
-            });
-        });
-    }
-    
-    // Form submission
-    if (form) {
-        form.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            
-            if (reviewsState.selectedRating === 0) {
-                showToast('Please select a rating', 'error');
-                return;
-            }
-            
-            const token = document.getElementById('reviewToken').value;
-            if (!token) {
-                showToast('You must have a valid purchase to leave a review', 'error');
-                return;
-            }
-            
-            const submitBtn = document.getElementById('submitReviewBtn');
-            submitBtn.disabled = true;
-            submitBtn.textContent = 'Submitting...';
-            
-            const formData = new FormData();
-            formData.append('token', token);
-            formData.append('rating', reviewsState.selectedRating);
-            formData.append('title', document.getElementById('reviewTitle').value);
-            formData.append('text', document.getElementById('reviewText').value);
-            formData.append('customerName', document.getElementById('reviewerName').value);
-            
-            reviewsState.reviewPhotos.forEach(photo => {
-                formData.append('photos', photo.file);
-            });
-            
-            try {
-                await ReviewsAPI.submitReview(formData);
-                showToast('Review submitted successfully! It will appear after approval.', 'success');
-                closeReviewModal();
-                
-                // Reload reviews
-                if (window.state && window.state.product) {
-                    loadReviews(window.state.product.id);
-                }
-            } catch (error) {
-                showToast(error.message || 'Failed to submit review', 'error');
-            } finally {
-                submitBtn.disabled = false;
-                submitBtn.textContent = 'Submit Review';
-            }
-        });
-    }
-}
-
-// Update photo preview
-function updatePhotoPreview() {
-    const container = document.getElementById('reviewPhotoPreview');
-    if (!container) return;
-    
-    container.innerHTML = reviewsState.reviewPhotos.map((photo, index) => `
-        <div class="photo-preview">
-            <img src="${photo.preview}" alt="Preview">
-            <button type="button" class="remove-photo" onclick="window.removeReviewPhoto(${index})">×</button>
-        </div>
-    `).join('');
-}
-
-// Remove review photo
-window.removeReviewPhoto = function(index) {
-    reviewsState.reviewPhotos.splice(index, 1);
-    updatePhotoPreview();
-};
-
-// Open photo modal
-window.openPhotoModal = function(photoUrl) {
-    const modal = document.createElement('div');
-    modal.className = 'photo-modal';
-    modal.innerHTML = `
-        <div class="photo-modal-overlay" onclick="this.parentElement.remove()"></div>
-        <img src="${photoUrl}" alt="Review photo" onclick="this.parentElement.remove()">
-    `;
-    document.body.appendChild(modal);
-};
