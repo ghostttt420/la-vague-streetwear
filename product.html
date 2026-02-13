@@ -239,14 +239,14 @@
 
     <!-- Review Modal -->
     <div class="review-modal" id="reviewModal">
+        <button class="review-modal-close-x" id="reviewModalCloseX">×</button>
         <div class="review-modal-header">
-            <h3>Write a Review</h3>
-            <button class="review-modal-close" id="reviewModalClose">×</button>
+            <h3 data-i18n="product.writeReview">Write a Review</h3>
         </div>
         <div class="review-modal-content">
             <form id="reviewForm">
                 <div class="form-group">
-                    <label>Rating</label>
+                    <label data-i18n="product.rating">Rating</label>
                     <div class="star-rating-input" id="starRatingInput">
                         <span data-rating="1">★</span>
                         <span data-rating="2">★</span>
@@ -257,27 +257,27 @@
                     <input type="hidden" id="reviewRating" required>
                 </div>
                 <div class="form-group">
-                    <label for="reviewTitle">Review Title</label>
+                    <label for="reviewTitle" data-i18n="product.reviewTitle">Review Title</label>
                     <input type="text" id="reviewTitle" class="input" placeholder="Summarize your experience" required>
                 </div>
                 <div class="form-group">
-                    <label for="reviewText">Review</label>
+                    <label for="reviewText" data-i18n="product.reviewText">Review</label>
                     <textarea id="reviewText" class="input" rows="4" placeholder="Tell us what you liked or didn't like" required></textarea>
                 </div>
                 <div class="form-group">
-                    <label for="reviewerName">Your Name</label>
+                    <label for="reviewerName" data-i18n="product.yourName">Your Name</label>
                     <input type="text" id="reviewerName" class="input" placeholder="John Doe" required>
                 </div>
                 <div class="form-group">
-                    <label for="reviewerEmail">Email</label>
+                    <label for="reviewerEmail" data-i18n="product.email">Email</label>
                     <input type="email" id="reviewerEmail" class="input" placeholder="john@example.com" required>
                 </div>
                 <div class="form-group">
-                    <label for="orderId">Order ID (optional)</label>
+                    <label for="orderId" data-i18n="product.orderId">Order ID (optional)</label>
                     <input type="text" id="orderId" class="input" placeholder="LV-XXXXXXXX">
                     <small>Enter your order ID to verify purchase</small>
                 </div>
-                <button type="submit" class="btn btn-primary btn-full">Submit Review</button>
+                <button type="submit" class="btn btn-primary btn-full" data-i18n="product.submitReview">Submit Review</button>
             </form>
         </div>
     </div>
@@ -405,6 +405,7 @@
     <script src="products.js?v=2"></script>
     <script src="cart.js?v=2"></script>
     <script src="utils.js"></script>
+    <script src="translations.js"></script>
     <script src="product.js?v=2"></script>
 </body>
 </html>

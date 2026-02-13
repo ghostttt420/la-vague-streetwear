@@ -795,6 +795,13 @@ document.addEventListener('DOMContentLoaded', () => {
         const savedLang = localStorage.getItem('preferredLanguage') || 'en';
         languageSelect.value = savedLang;
         document.documentElement.lang = savedLang;
+        document.documentElement.dir = savedLang === 'ar' ? 'rtl' : 'ltr';
+        
+        // Apply translations on load
+        if (typeof applyTranslations === 'function') {
+            applyTranslations();
+        }
+        
         languageSelect.addEventListener('change', (e) => {
             localStorage.setItem('preferredLanguage', e.target.value);
             document.documentElement.lang = e.target.value;
@@ -922,18 +929,19 @@ document.addEventListener('DOMContentLoaded', () => {
     // Review Modal
     const reviewModal = document.getElementById('reviewModal');
     const writeReviewBtn = document.getElementById('writeReviewBtn');
-    const reviewModalClose = document.getElementById('reviewModalClose');
+    const reviewModalCloseX = document.getElementById('reviewModalCloseX');
     const reviewForm = document.getElementById('reviewForm');
     const starRatingInput = document.getElementById('starRatingInput');
     
     console.log('[Reviews] Modal elements:', { 
         reviewModal: !!reviewModal, 
         writeReviewBtn: !!writeReviewBtn,
-        reviewModalClose: !!reviewModalClose,
+        reviewModalCloseX: !!reviewModalCloseX,
         reviewForm: !!reviewForm,
         starRatingInput: !!starRatingInput
     });
     
+    // Open modal
     if (writeReviewBtn) {
         console.log('[Reviews] Attaching click listener to writeReviewBtn');
         writeReviewBtn.addEventListener('click', (e) => {
@@ -942,6 +950,7 @@ document.addEventListener('DOMContentLoaded', () => {
             console.log('[Reviews] Write review button clicked');
             if (reviewModal) {
                 reviewModal.classList.add('active');
+                document.body.style.overflow = 'hidden'; // Prevent background scrolling
                 console.log('[Reviews] Modal opened with active class');
             }
         });
@@ -949,20 +958,35 @@ document.addEventListener('DOMContentLoaded', () => {
         console.error('[Reviews] writeReviewBtn not found!');
     }
     
-    if (reviewModalClose) {
-        reviewModalClose.addEventListener('click', () => {
+    // Close modal function
+    function closeReviewModal() {
+        if (reviewModal) {
             reviewModal.classList.remove('active');
-        });
+            document.body.style.overflow = '';
+        }
     }
     
-    // Close modal when clicking outside (on the backdrop)
+    // Close with X button
+    if (reviewModalCloseX) {
+        reviewModalCloseX.addEventListener('click', closeReviewModal);
+    }
+    
+    // Close when clicking on backdrop (outside modal content)
     if (reviewModal) {
         reviewModal.addEventListener('click', (e) => {
+            // Check if click is on the modal itself (backdrop) not its children
             if (e.target === reviewModal) {
-                reviewModal.classList.remove('active');
+                closeReviewModal();
             }
         });
     }
+    
+    // Close on Escape key
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && reviewModal && reviewModal.classList.contains('active')) {
+            closeReviewModal();
+        }
+    });
     
     // Star rating input
     if (starRatingInput) {

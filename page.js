@@ -381,6 +381,13 @@ document.addEventListener('DOMContentLoaded', () => {
         const savedLang = localStorage.getItem('preferredLanguage') || 'en';
         languageSelect.value = savedLang;
         document.documentElement.lang = savedLang;
+        document.documentElement.dir = savedLang === 'ar' ? 'rtl' : 'ltr';
+        
+        // Apply translations on load
+        if (typeof applyTranslations === 'function') {
+            applyTranslations();
+        }
+        
         languageSelect.addEventListener('change', (e) => {
             localStorage.setItem('preferredLanguage', e.target.value);
             document.documentElement.lang = e.target.value;

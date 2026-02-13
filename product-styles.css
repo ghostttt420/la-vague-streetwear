@@ -1207,6 +1207,30 @@
     margin: 0;
 }
 
+.review-modal-close-x {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    width: 36px;
+    height: 36px;
+    background: var(--color-bg-secondary);
+    border: 1px solid var(--color-border);
+    color: var(--color-text);
+    font-size: 1.5rem;
+    font-weight: 300;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10;
+    transition: all 0.2s ease;
+}
+
+.review-modal-close-x:hover {
+    background: var(--color-accent);
+    border-color: var(--color-accent);
+}
+
 .review-modal-content {
     padding: 1.5rem;
 }
