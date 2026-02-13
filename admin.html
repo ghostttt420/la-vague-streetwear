@@ -78,6 +78,13 @@
                     <span>Inventory</span>
                     <span class="nav-badge nav-badge-warning" id="lowStockCount" style="display: none;">0</span>
                 </a>
+                <a href="#" class="nav-item" data-section="reviews">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+                    </svg>
+                    <span>Reviews</span>
+                    <span class="nav-badge nav-badge-warning" id="pendingReviewsCount" style="display: none;">0</span>
+                </a>
                 <a href="#" class="nav-item" data-section="customers">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
@@ -94,6 +101,24 @@
                         <line x1="6" y1="20" x2="6" y2="14"></line>
                     </svg>
                     <span>Analytics</span>
+                </a>
+                <a href="#" class="nav-item" data-section="reports">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                        <polyline points="14 2 14 8 20 8"></polyline>
+                        <line x1="16" y1="13" x2="8" y2="13"></line>
+                        <line x1="16" y1="17" x2="8" y2="17"></line>
+                        <polyline points="10 9 9 9 8 9"></polyline>
+                    </svg>
+                    <span>Reports</span>
+                </a>
+                <a href="#" class="nav-item" data-section="coupons">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M21 11V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h6"></path>
+                        <path d="M16 2v20"></path>
+                        <circle cx="16" cy="12" r="1.5"></circle>
+                    </svg>
+                    <span>Coupons</span>
                 </a>
                 <a href="#" class="nav-item" data-section="settings">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -271,10 +296,26 @@
                                 <button id="addProductBtn" class="btn btn-primary btn-sm">+ Add Product</button>
                             </div>
                         </div>
+                        <!-- Bulk Actions Bar -->
+                        <div id="bulkActionsBar" class="bulk-actions-bar" style="display: none;">
+                            <span id="selectedCount">0 selected</span>
+                            <div class="bulk-actions">
+                                <select id="bulkActionSelect" class="input input-sm">
+                                    <option value="">Bulk Actions...</option>
+                                    <option value="delete">Delete</option>
+                                    <option value="category">Change Category</option>
+                                    <option value="price">Update Prices</option>
+                                    <option value="status">Update Status</option>
+                                </select>
+                                <button id="applyBulkAction" class="btn btn-primary btn-sm">Apply</button>
+                                <button id="clearSelection" class="btn btn-secondary btn-sm">Clear</button>
+                            </div>
+                        </div>
                         <div class="table-responsive">
-                            <table class="table">
+                            <table class="table" id="productsTableContainer">
                                 <thead>
                                     <tr>
+                                        <th><input type="checkbox" id="selectAllProducts"></th>
                                         <th>Image</th>
                                         <th>Name</th>
                                         <th>Category</th>
@@ -285,7 +326,7 @@
                                     </tr>
                                 </thead>
                                 <tbody id="productsTable">
-                                    <tr><td colspan="7" class="text-center">Loading products...</td></tr>
+                                    <tr><td colspan="8" class="text-center">Loading products...</td></tr>
                                 </tbody>
                             </table>
                         </div>
@@ -294,32 +335,177 @@
 
                 <!-- Inventory Section -->
                 <section id="inventorySection" class="section">
-                    <div class="card">
-                        <div class="card-header">
-                            <h3>Inventory Management</h3>
-                            <div class="card-actions">
-                                <select id="inventoryFilter" class="input input-sm">
-                                    <option value="all">All Products</option>
-                                    <option value="low">Low Stock Only</option>
-                                </select>
+                    <div class="inventory-tabs" style="margin-bottom: 1.5rem;">
+                        <button class="tab-btn active" data-tab="inventory-list" onclick="showInventoryTab('inventory-list')">Inventory List</button>
+                        <button class="tab-btn" data-tab="waitlist" onclick="showInventoryTab('waitlist')">Waitlist</button>
+                        <button class="tab-btn" data-tab="bulk-import" onclick="showInventoryTab('bulk-import')">Bulk Import/Export</button>
+                    </div>
+                    
+                    <!-- Inventory List Tab -->
+                    <div id="inventory-list" class="tab-content active">
+                        <div class="card">
+                            <div class="card-header">
+                                <h3>Inventory Management</h3>
+                                <div class="card-actions">
+                                    <button class="btn btn-secondary btn-sm" onclick="checkLowStock()">
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: middle; margin-right: 0.25rem;">
+                                            <path d="M22 17H2a3 3 0 0 0 3-3V9a7 7 0 0 1 14 0v5a3 3 0 0 0 3 3zm-8.27 4a2 2 0 0 1-3.46 0"></path>
+                                        </svg>
+                                        Check Low Stock
+                                    </button>
+                                    <select id="inventoryFilter" class="input input-sm">
+                                        <option value="all">All Products</option>
+                                        <option value="low">Low Stock Only</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="table-responsive">
+                                <table class="table">
+                                    <thead>
+                                        <tr>
+                                            <th>Product</th>
+                                            <th>Variant</th>
+                                            <th>Total Stock</th>
+                                            <th>Threshold</th>
+                                            <th>Status</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="inventoryTable">
+                                        <tr><td colspan="6" class="text-center">Loading inventory...</td></tr>
+                                    </tbody>
+                                </table>
                             </div>
                         </div>
-                        <div class="table-responsive">
-                            <table class="table">
-                                <thead>
-                                    <tr>
-                                        <th>Product</th>
-                                        <th>Variant</th>
-                                        <th>Total Stock</th>
-                                        <th>Reserved</th>
-                                        <th>Available</th>
-                                        <th>Actions</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="inventoryTable">
-                                    <tr><td colspan="6" class="text-center">Loading inventory...</td></tr>
-                                </tbody>
-                            </table>
+                    </div>
+                    
+                    <!-- Waitlist Tab -->
+                    <div id="waitlist" class="tab-content">
+                        <div class="card">
+                            <div class="card-header">
+                                <h3>Waitlist</h3>
+                                <div class="card-actions">
+                                    <select id="waitlistFilter" class="input input-sm" onchange="loadWaitlist()">
+                                        <option value="waiting">Waiting</option>
+                                        <option value="notified">Notified</option>
+                                        <option value="all">All</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="table-responsive">
+                                <table class="table">
+                                    <thead>
+                                        <tr>
+                                            <th>Product</th>
+                                            <th>Variant</th>
+                                            <th>Customer</th>
+                                            <th>Email</th>
+                                            <th>Date Added</th>
+                                            <th>Status</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="waitlistTable">
+                                        <tr><td colspan="7" class="text-center">Loading waitlist...</td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Bulk Import Tab -->
+                    <div id="bulk-import" class="tab-content">
+                        <div class="card" style="margin-bottom: 1.5rem;">
+                            <div class="card-header">
+                                <h3>Export Inventory</h3>
+                            </div>
+                            <div class="card-body">
+                                <p style="color: var(--color-text-muted); margin-bottom: 1rem;">Download current inventory as CSV file with all variants.</p>
+                                <button class="btn btn-secondary" onclick="exportInventory()">
+                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: middle; margin-right: 0.5rem;">
+                                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                                        <polyline points="7 10 12 15 17 10"></polyline>
+                                        <line x1="12" y1="15" x2="12" y2="3"></line>
+                                    </svg>
+                                    Download CSV
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div class="card" style="margin-bottom: 1.5rem;">
+                            <div class="card-header">
+                                <h3>Import Inventory</h3>
+                            </div>
+                            <div class="card-body">
+                                <p style="color: var(--color-text-muted); margin-bottom: 1rem;">Upload a CSV file to update inventory levels. File format: Product ID, Product Name, SKU, Variant, Stock Level</p>
+                                
+                                <div class="upload-zone" id="inventoryUploadZone" style="
+                                    border: 2px dashed #dee2e6;
+                                    border-radius: 8px;
+                                    padding: 2rem;
+                                    text-align: center;
+                                    cursor: pointer;
+                                    transition: all 0.2s;
+                                " ondragover="this.style.borderColor='#000'; this.style.background='#f8f9fa';" 
+                                ondragleave="this.style.borderColor='#dee2e6'; this.style.background='transparent';"
+                                onclick="document.getElementById('inventoryFileInput').click()">
+                                    <input type="file" id="inventoryFileInput" accept=".csv" style="display: none;">
+                                    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="color: #adb5bd; margin-bottom: 1rem;">
+                                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                                        <polyline points="17 8 12 3 7 8"></polyline>
+                                        <line x1="12" y1="3" x2="12" y2="15"></line>
+                                    </svg>
+                                    <p style="margin: 0; color: #495057;">Drag & drop CSV file here or click to browse</p>
+                                    <p style="margin: 0.5rem 0 0 0; font-size: 0.875rem; color: #adb5bd;">Max 5MB</p>
+                                </div>
+                                
+                                <div id="importPreview" style="display: none; margin-top: 1.5rem;">
+                                    <h4 style="margin-bottom: 1rem;">Preview</h4>
+                                    <div class="table-responsive">
+                                        <table class="table table-sm">
+                                            <thead>
+                                                <tr>
+                                                    <th>Product</th>
+                                                    <th>Variant</th>
+                                                    <th>Current Stock</th>
+                                                    <th>New Stock</th>
+                                                    <th>Status</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="importPreviewTable"></tbody>
+                                        </table>
+                                    </div>
+                                    <div id="importActions" style="margin-top: 1rem; display: flex; gap: 0.5rem;">
+                                        <button class="btn btn-primary" onclick="applyImport()">Apply Changes</button>
+                                        <button class="btn btn-secondary" onclick="cancelImport()">Cancel</button>
+                                    </div>
+                                </div>
+                                
+                                <div id="importResult" style="display: none; margin-top: 1rem;"></div>
+                            </div>
+                        </div>
+                        
+                        <div class="card">
+                            <div class="card-header">
+                                <h3>Import History</h3>
+                            </div>
+                            <div class="table-responsive">
+                                <table class="table">
+                                    <thead>
+                                        <tr>
+                                            <th>Date</th>
+                                            <th>Filename</th>
+                                            <th>Total Rows</th>
+                                            <th>Successful</th>
+                                            <th>Failed</th>
+                                            <th>By</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="importHistoryTable">
+                                        <tr><td colspan="6" class="text-center">Loading history...</td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
                         </div>
                     </div>
                 </section>
@@ -331,7 +517,43 @@
                             <h3>Customers</h3>
                             <div class="card-actions">
                                 <input type="text" id="customerSearch" placeholder="Search customers..." class="input input-sm">
+                                <button id="customerFiltersBtn" class="btn btn-secondary btn-sm">Filters</button>
                                 <button id="exportCustomersBtn" class="btn btn-secondary btn-sm">Export CSV</button>
+                            </div>
+                        </div>
+                        <!-- Customer Filters -->
+                        <div id="customerFilters" class="customer-filters" style="display: none;">
+                            <div class="filter-row">
+                                <div class="filter-group">
+                                    <label>Min Orders</label>
+                                    <input type="number" id="filterMinOrders" class="input input-sm" min="0" placeholder="0">
+                                </div>
+                                <div class="filter-group">
+                                    <label>Max Orders</label>
+                                    <input type="number" id="filterMaxOrders" class="input input-sm" min="0" placeholder="∞">
+                                </div>
+                                <div class="filter-group">
+                                    <label>Min Spent ($)</label>
+                                    <input type="number" id="filterMinSpent" class="input input-sm" min="0" placeholder="0">
+                                </div>
+                                <div class="filter-group">
+                                    <label>Max Spent ($)</label>
+                                    <input type="number" id="filterMaxSpent" class="input input-sm" min="0" placeholder="∞">
+                                </div>
+                                <div class="filter-group">
+                                    <label>Last Order (days)</label>
+                                    <input type="number" id="filterLastOrder" class="input input-sm" min="0" placeholder="Any">
+                                </div>
+                                <div class="filter-group">
+                                    <label>Sort By</label>
+                                    <select id="customerSortBy" class="input input-sm">
+                                        <option value="lifetime_value">Lifetime Value</option>
+                                        <option value="order_count">Order Count</option>
+                                        <option value="last_order_date">Last Order</option>
+                                    </select>
+                                </div>
+                                <button id="applyCustomerFilters" class="btn btn-primary btn-sm">Apply</button>
+                                <button id="clearCustomerFilters" class="btn btn-secondary btn-sm">Clear</button>
                             </div>
                         </div>
                         <div class="table-responsive">
@@ -435,6 +657,185 @@
                                     </tbody>
                                 </table>
                             </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Reports Section -->
+                <section id="reportsSection" class="section">
+                    <div class="card">
+                        <div class="card-header">
+                            <h3>Sales Reports</h3>
+                            <div class="card-actions">
+                                <input type="date" id="reportStartDate" class="input input-sm">
+                                <input type="date" id="reportEndDate" class="input input-sm">
+                                <button id="generateReport" class="btn btn-primary btn-sm">Generate</button>
+                                <button id="exportReport" class="btn btn-secondary btn-sm" style="display: none;">Export CSV</button>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <!-- Report Stats -->
+                            <div class="stats-grid" id="reportStats" style="display: none;">
+                                <div class="stat-card">
+                                    <div class="stat-icon stat-icon-sales">
+                                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <line x1="12" y1="1" x2="12" y2="23"></line>
+                                            <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+                                        </svg>
+                                    </div>
+                                    <div class="stat-info">
+                                        <span class="stat-value" id="reportRevenue">$0</span>
+                                        <span class="stat-label">Total Revenue</span>
+                                    </div>
+                                </div>
+                                <div class="stat-card">
+                                    <div class="stat-icon stat-icon-orders">
+                                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <path d="M6 6h15l-1.5 9h-12z"></path>
+                                            <circle cx="9" cy="20" r="1"></circle>
+                                            <circle cx="18" cy="20" r="1"></circle>
+                                        </svg>
+                                    </div>
+                                    <div class="stat-info">
+                                        <span class="stat-value" id="reportOrders">0</span>
+                                        <span class="stat-label">Orders</span>
+                                    </div>
+                                </div>
+                                <div class="stat-card">
+                                    <div class="stat-icon stat-icon-pending">
+                                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline>
+                                        </svg>
+                                    </div>
+                                    <div class="stat-info">
+                                        <span class="stat-value" id="reportAOV">$0</span>
+                                        <span class="stat-label">Avg Order Value</span>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Report Charts -->
+                            <div class="dashboard-grid" id="reportCharts" style="display: none;">
+                                <div class="card">
+                                    <div class="card-header">
+                                        <h4>Sales Trend</h4>
+                                    </div>
+                                    <div id="reportSalesChart" style="height: 300px; padding: 1rem;">
+                                        <div class="simple-chart" id="reportChartContainer"></div>
+                                    </div>
+                                </div>
+                                <div class="card">
+                                    <div class="card-header">
+                                        <h4>Sales by Category</h4>
+                                    </div>
+                                    <div class="table-responsive">
+                                        <table class="table">
+                                            <thead>
+                                                <tr>
+                                                    <th>Category</th>
+                                                    <th>Quantity</th>
+                                                    <th>Revenue</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="reportCategoryTable">
+                                                <tr><td colspan="3" class="text-center">No data</td></tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Top Products -->
+                            <div class="card" id="topProductsReport" style="display: none; margin-top: 1.5rem;">
+                                <div class="card-header">
+                                    <h4>Top Selling Products</h4>
+                                </div>
+                                <div class="table-responsive">
+                                    <table class="table">
+                                        <thead>
+                                            <tr>
+                                                <th>Product</th>
+                                                <th>Units Sold</th>
+                                                <th>Revenue</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="reportTopProductsTable">
+                                            <tr><td colspan="3" class="text-center">No data</td></tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                            
+                            <div id="noReportData" class="text-center text-muted" style="padding: 3rem;">
+                                Select a date range and click Generate to view reports
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Coupons Section -->
+                <section id="couponsSection" class="section">
+                    <div class="card">
+                        <div class="card-header">
+                            <h3>Coupon Management</h3>
+                            <div class="card-actions">
+                                <button id="addCouponBtn" class="btn btn-primary btn-sm">+ Add Coupon</button>
+                            </div>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th>Code</th>
+                                        <th>Type</th>
+                                        <th>Value</th>
+                                        <th>Usage</th>
+                                        <th>Status</th>
+                                        <th>Expires</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="couponsTable">
+                                    <tr><td colspan="7" class="text-center">Loading coupons...</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Reviews Section -->
+                <section id="reviewsSection" class="section">
+                    <div class="card">
+                        <div class="card-header">
+                            <h3>Review Management</h3>
+                            <div class="card-actions">
+                                <select id="reviewStatusFilter" class="input input-sm">
+                                    <option value="all">All Reviews</option>
+                                    <option value="pending">Pending</option>
+                                    <option value="approved">Approved</option>
+                                    <option value="rejected">Rejected</option>
+                                </select>
+                                <button id="sendReviewRequestsBtn" class="btn btn-secondary btn-sm">Send Review Requests</button>
+                            </div>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th>Product</th>
+                                        <th>Customer</th>
+                                        <th>Rating</th>
+                                        <th>Title</th>
+                                        <th>Review</th>
+                                        <th>Status</th>
+                                        <th>Date</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="reviewsTable">
+                                    <tr><td colspan="8" class="text-center">Loading reviews...</td></tr>
+                                </tbody>
+                            </table>
                         </div>
                     </div>
                 </section>
@@ -672,10 +1073,147 @@
                     <label>New Stock Quantity</label>
                     <input type="number" id="inventoryNewStock" min="0" required>
                 </div>
+                <div class="form-group">
+                    <label>Low Stock Threshold</label>
+                    <input type="number" id="inventoryThreshold" min="0" placeholder="Default: 5">
+                    <small style="color: var(--color-text-muted);">Alert when stock falls below this number</small>
+                </div>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" onclick="closeInventoryModal()">Cancel</button>
                 <button type="button" class="btn btn-primary" id="updateInventoryBtn">Update Stock</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bulk Action Modal -->
+    <div id="bulkActionModal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="bulkActionTitle">Bulk Action</h3>
+                <button class="modal-close" onclick="closeBulkActionModal()">&times;</button>
+            </div>
+            <div class="modal-body" id="bulkActionBody">
+                <!-- Dynamic content based on action type -->
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="closeBulkActionModal()">Cancel</button>
+                <button type="button" class="btn btn-primary" id="confirmBulkAction">Confirm</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Coupon Form Modal -->
+    <div id="couponModal" class="modal" style="display: none;">
+        <div class="modal-content modal-lg">
+            <div class="modal-header">
+                <h3 id="couponModalTitle">Add Coupon</h3>
+                <button class="modal-close" onclick="closeCouponModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="couponForm">
+                    <input type="hidden" id="couponId">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Coupon Code *</label>
+                            <input type="text" id="couponCode" required placeholder="SUMMER20">
+                        </div>
+                        <div class="form-group">
+                            <label>Type *</label>
+                            <select id="couponType" required>
+                                <option value="percentage">Percentage Off</option>
+                                <option value="fixed">Fixed Amount Off</option>
+                                <option value="free_shipping">Free Shipping</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Value *</label>
+                            <input type="number" id="couponValue" required min="0" placeholder="20">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Minimum Order ($)</label>
+                            <input type="number" id="couponMinOrder" min="0" value="0">
+                        </div>
+                        <div class="form-group">
+                            <label>Usage Limit (total)</label>
+                            <input type="number" id="couponUsageLimit" min="1" placeholder="Unlimited">
+                        </div>
+                        <div class="form-group">
+                            <label>Usage Limit Per Customer</label>
+                            <input type="number" id="couponPerCustomer" min="1" placeholder="Unlimited">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Start Date</label>
+                            <input type="date" id="couponStartDate">
+                        </div>
+                        <div class="form-group">
+                            <label>End Date</label>
+                            <input type="date" id="couponEndDate">
+                        </div>
+                        <div class="form-group">
+                            <label>Status</label>
+                            <select id="couponStatus">
+                                <option value="true">Active</option>
+                                <option value="false">Inactive</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Applicable Categories (comma separated, leave empty for all)</label>
+                        <input type="text" id="couponCategories" placeholder="hoodies, tees, accessories">
+                    </div>
+                    <div class="form-group">
+                        <label>Applicable Products (comma separated product IDs, leave empty for all)</label>
+                        <input type="text" id="couponProducts" placeholder="prod-001, prod-002">
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="closeCouponModal()">Cancel</button>
+                <button type="button" class="btn btn-primary" id="saveCouponBtn">Save Coupon</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Review Edit Modal -->
+    <div id="reviewEditModal" class="modal" style="display: none;">
+        <div class="modal-content modal-lg">
+            <div class="modal-header">
+                <h3>Edit Review</h3>
+                <button class="modal-close" onclick="closeReviewEditModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="editReviewId">
+                <div class="form-group">
+                    <label>Rating</label>
+                    <select id="editReviewRating" class="input">
+                        <option value="5">5 Stars</option>
+                        <option value="4">4 Stars</option>
+                        <option value="3">3 Stars</option>
+                        <option value="2">2 Stars</option>
+                        <option value="1">1 Star</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Title</label>
+                    <input type="text" id="editReviewTitle" class="input" maxlength="100">
+                </div>
+                <div class="form-group">
+                    <label>Review Text</label>
+                    <textarea id="editReviewText" class="input" rows="4" maxlength="2000"></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Customer Name</label>
+                    <input type="text" id="editReviewCustomerName" class="input">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="closeReviewEditModal()">Cancel</button>
+                <button type="button" class="btn btn-primary" id="saveReviewBtn">Save Changes</button>
             </div>
         </div>
     </div>

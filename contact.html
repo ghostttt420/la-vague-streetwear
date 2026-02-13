@@ -35,6 +35,14 @@
                 <li><a href="faq.html" class="nav-link">FAQ</a></li>
             </ul>
             <div class="nav-actions">
+                <div class="currency-selector">
+                    <select id="currencySelect" aria-label="Select currency">
+                        <option value="USD">USD</option>
+                        <option value="NGN">NGN</option>
+                        <option value="EUR">EUR</option>
+                        <option value="GBP">GBP</option>
+                    </select>
+                </div>
                 <button class="nav-btn" id="searchBtn" aria-label="Search">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <circle cx="11" cy="11" r="8"></circle>
@@ -229,25 +237,61 @@
 
     <script src="products.js"></script>
     <script src="page.js"></script>
+    <script src="utils.js"></script>
     <script>
-        // Contact form specific handling
-        document.getElementById('contactForm')?.addEventListener('submit', function(e) {
-            e.preventDefault();
-            const submitBtn = this.querySelector('button[type="submit"]');
-            submitBtn.textContent = 'Sending...';
-            submitBtn.disabled = true;
+        // Contact form specific handling with input masking
+        document.addEventListener('DOMContentLoaded', function() {
+            const contactForm = document.getElementById('contactForm');
+            const phoneInput = document.getElementById('phone');
             
-            setTimeout(() => {
-                submitBtn.textContent = 'Message Sent!';
-                submitBtn.style.background = '#22c55e';
-                this.reset();
+            // Add phone input field if not exists (for phone masking demo)
+            if (contactForm && !phoneInput) {
+                const subjectGroup = document.getElementById('subject')?.parentElement;
+                if (subjectGroup) {
+                    const phoneGroup = document.createElement('div');
+                    phoneGroup.className = 'form-group';
+                    phoneGroup.innerHTML = `
+                        <label for="phone">Phone (optional)</label>
+                        <input type="tel" id="phone" placeholder="+1 (555) 123-4567">
+                    `;
+                    subjectGroup.after(phoneGroup);
+                    
+                    // Apply phone masking
+                    const newPhoneInput = document.getElementById('phone');
+                    newPhoneInput?.addEventListener('input', function(e) {
+                        this.value = InputMasks.phoneNumber(this.value, 'auto');
+                    });
+                }
+            } else if (phoneInput) {
+                // Apply phone masking to existing phone input
+                phoneInput.addEventListener('input', function(e) {
+                    this.value = InputMasks.phoneNumber(this.value, 'auto');
+                });
+            }
+            
+            // Form submission with button state management
+            contactForm?.addEventListener('submit', async function(e) {
+                e.preventDefault();
+                const submitBtn = this.querySelector('button[type="submit"]');
                 
-                setTimeout(() => {
-                    submitBtn.textContent = 'Send Message';
-                    submitBtn.style.background = '';
-                    submitBtn.disabled = false;
-                }, 2000);
-            }, 1500);
+                // Validate email
+                const emailInput = document.getElementById('email');
+                if (emailInput && emailInput.value && !FormValidation.isValidEmail(emailInput.value)) {
+                    emailInput.classList.add('error');
+                    alert('Please enter a valid email address');
+                    return;
+                }
+                
+                // Set loading state
+                ButtonState.setLoading(submitBtn, 'Sending...', true);
+                
+                // Simulate API call
+                await new Promise(resolve => setTimeout(resolve, 1500));
+                
+                // Show success
+                ButtonState.setSuccess(submitBtn, 'Message Sent!', 2000);
+                this.reset();
+            });
         });
     </script>
 <script src="cart.js"></script>

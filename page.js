@@ -35,6 +35,9 @@ document.addEventListener('DOMContentLoaded', () => {
     // INITIALIZATION
     // ==========================================
     function init() {
+        // Initialize currency selector
+        initCurrencySelector();
+        
         updateCartCount();
         bindEvents();
         initFAQ();
@@ -47,6 +50,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 elements.nav?.classList.remove('scrolled');
             }
         }, { passive: true });
+        
+        // Listen for currency changes
+        window.addEventListener('currencyChanged', () => {
+            renderCart();
+        });
     }
 
     // ==========================================
@@ -77,7 +85,7 @@ document.addEventListener('DOMContentLoaded', () => {
                             <span>${item.quantity}</span>
                             <button onclick="window.updateCartQty(${index}, 1)">+</button>
                         </div>
-                        <span class="cart-item-price">$${item.price * item.quantity}</span>
+                        <span class="cart-item-price">${CurrencyConfig.formatPrice(item.price * item.quantity)}</span>
                     </div>
                 </div>
                 <button class="cart-item-remove" onclick="window.removeFromCart(${index})">×</button>
@@ -85,7 +93,7 @@ document.addEventListener('DOMContentLoaded', () => {
         `).join('');
         
         const subtotal = state.cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-        elements.cartSubtotal.textContent = `$${subtotal}`;
+        elements.cartSubtotal.textContent = CurrencyConfig.formatPrice(subtotal);
     }
 
     function openCart() {
@@ -194,7 +202,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     <h4>${product.name}</h4>
                     <p>${CATEGORIES.find(c => c.id === product.category)?.name}</p>
                 </div>
-                <span class="search-result-price">$${product.price}</span>
+                <span class="search-result-price">${CurrencyConfig.formatPrice(product.price)}</span>
             </div>
         `).join('');
     }
@@ -224,17 +232,39 @@ document.addEventListener('DOMContentLoaded', () => {
         const contactForm = document.getElementById('contactForm');
         if (!contactForm) return;
         
+        // Add phone input masking if phone field exists
+        const phoneInput = document.getElementById('phone');
+        if (phoneInput && typeof InputMasks !== 'undefined') {
+            phoneInput.addEventListener('input', function() {
+                this.value = InputMasks.phoneNumber(this.value, 'auto');
+            });
+        }
+        
         contactForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             
             const submitBtn = contactForm.querySelector('button[type="submit"]');
-            const originalText = submitBtn.textContent;
-            submitBtn.textContent = 'Sending...';
-            submitBtn.disabled = true;
+            
+            // Validate email
+            const email = document.getElementById('email')?.value;
+            if (email && typeof FormValidation !== 'undefined' && !FormValidation.isValidEmail(email)) {
+                showToast('Please enter a valid email address', 'error');
+                document.getElementById('email')?.classList.add('error');
+                setTimeout(() => document.getElementById('email')?.classList.remove('error'), 2000);
+                return;
+            }
+            
+            // Set loading state
+            if (typeof ButtonState !== 'undefined') {
+                ButtonState.setLoading(submitBtn, 'Sending...', true);
+            } else {
+                submitBtn.textContent = 'Sending...';
+                submitBtn.disabled = true;
+            }
             
             const formData = {
                 name: `${document.getElementById('firstName')?.value || ''} ${document.getElementById('lastName')?.value || ''}`.trim(),
-                email: document.getElementById('email')?.value,
+                email: email,
                 subject: document.getElementById('subject')?.value,
                 message: document.getElementById('message')?.value
             };
@@ -259,17 +289,25 @@ document.addEventListener('DOMContentLoaded', () => {
                 const result = await response.json();
                 
                 if (result.success) {
-                    showToast('Message sent successfully!', 'success');
+                    if (typeof ButtonState !== 'undefined') {
+                        ButtonState.setSuccess(submitBtn, 'Message Sent!', 2000);
+                    } else {
+                        submitBtn.textContent = 'Message Sent!';
+                    }
                     contactForm.reset();
+                    showToast('Message sent successfully!', 'success');
                 } else {
-                    showToast(result.error || 'Failed to send message', 'error');
+                    throw new Error(result.error || 'Failed to send message');
                 }
             } catch (error) {
                 console.error('Contact form error:', error);
+                if (typeof ButtonState !== 'undefined') {
+                    ButtonState.setError(submitBtn, 'Try Again', 3000);
+                } else {
+                    submitBtn.textContent = 'Try Again';
+                    submitBtn.disabled = false;
+                }
                 showToast('Failed to send message. Please try again.', 'error');
-            } finally {
-                submitBtn.textContent = originalText;
-                submitBtn.disabled = false;
             }
         });
     }
@@ -287,10 +325,10 @@ document.addEventListener('DOMContentLoaded', () => {
         elements.searchBtn?.addEventListener('click', openSearch);
         elements.searchClose?.addEventListener('click', closeSearch);
         
-        let searchTimeout;
-        elements.searchInput?.addEventListener('input', (e) => {
-            clearTimeout(searchTimeout);
-            searchTimeout = setTimeout(() => handleSearch(e.target.value), 300);
+        // Use SearchHelper for consistent debouncing
+        SearchHelper.init(elements.searchInput, handleSearch, {
+            delay: 300,
+            minLength: 1
         });
         
         // Contact form
@@ -308,6 +346,23 @@ document.addEventListener('DOMContentLoaded', () => {
                 openSearch();
             }
         });
+    }
+
+    // ==========================================
+    // CURRENCY SELECTOR
+    // ==========================================
+    function initCurrencySelector() {
+        const currencySelect = document.getElementById('currencySelect');
+        if (currencySelect) {
+            // Set initial value from localStorage
+            const currentCurrency = CurrencyConfig.getCurrentCurrency();
+            currencySelect.value = currentCurrency;
+            
+            // Handle currency change
+            currencySelect.addEventListener('change', (e) => {
+                CurrencyConfig.setCurrency(e.target.value);
+            });
+        }
     }
 
     // Start

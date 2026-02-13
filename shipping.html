@@ -35,6 +35,14 @@
                 <li><a href="faq.html" class="nav-link">FAQ</a></li>
             </ul>
             <div class="nav-actions">
+                <div class="currency-selector">
+                    <select id="currencySelect" aria-label="Select currency">
+                        <option value="USD">USD</option>
+                        <option value="NGN">NGN</option>
+                        <option value="EUR">EUR</option>
+                        <option value="GBP">GBP</option>
+                    </select>
+                </div>
                 <button class="nav-btn" id="searchBtn" aria-label="Search">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <circle cx="11" cy="11" r="8"></circle>
@@ -361,6 +369,7 @@
     </div>
 
     <script src="products.js"></script>
+    <script src="utils.js"></script>
     <script src="page.js"></script>
 <script src="cart.js"></script>
 </body>

@@ -4,6 +4,78 @@
  */
 
 // ==========================================
+// CURRENCY CONFIGURATION
+// ==========================================
+const CurrencyConfig = {
+    // Exchange rates (USD base)
+    rates: {
+        USD: 1,
+        NGN: 1500,
+        EUR: 0.92,
+        GBP: 0.79
+    },
+    
+    // Currency symbols
+    symbols: {
+        USD: '$',
+        NGN: '₦',
+        EUR: '€',
+        GBP: '£'
+    },
+    
+    // Currency names
+    names: {
+        USD: 'USD',
+        NGN: 'NGN',
+        EUR: 'EUR',
+        GBP: 'GBP'
+    },
+    
+    // Get current currency from localStorage
+    getCurrentCurrency() {
+        return localStorage.getItem('preferredCurrency') || 'USD';
+    },
+    
+    // Set currency and notify listeners
+    setCurrency(currency) {
+        if (this.rates[currency]) {
+            localStorage.setItem('preferredCurrency', currency);
+            // Dispatch custom event for currency change
+            window.dispatchEvent(new CustomEvent('currencyChanged', { detail: { currency } }));
+            return true;
+        }
+        return false;
+    },
+    
+    // Convert USD amount to target currency
+    convert(amount, targetCurrency = null) {
+        const currency = targetCurrency || this.getCurrentCurrency();
+        const rate = this.rates[currency] || 1;
+        return amount * rate;
+    },
+    
+    // Format price for display
+    formatPrice(amount, currency = null) {
+        const targetCurrency = currency || this.getCurrentCurrency();
+        const convertedAmount = this.convert(amount, targetCurrency);
+        const symbol = this.symbols[targetCurrency];
+        
+        // Format based on currency
+        if (targetCurrency === 'NGN') {
+            // For NGN, show whole numbers without decimals
+            return `${symbol}${Math.round(convertedAmount).toLocaleString()}`;
+        }
+        
+        return `${symbol}${convertedAmount.toFixed(2)}`;
+    },
+    
+    // Get all supported currencies
+    getSupportedCurrencies() {
+        return Object.keys(this.rates);
+    }
+};
+
+// ==========================================
 // SHARED STATE
 // ==========================================
 const CartState = {
@@ -52,7 +124,9 @@ const CartState = {
         }
         
         this.saveCart();
-        this.showToast(`${item.name} added to cart`, 'success', 'View Cart');
+        // Use i18n if available
+        const viewCartText = (typeof I18n !== 'undefined') ? I18n.t('toast.viewCart') : 'View Cart';
+        this.showToast(`${item.name} ${(typeof I18n !== 'undefined') ? I18n.t('toast.addedToCart') : 'added to cart'}`, 'success', viewCartText);
     },
     
     addToWishlist(productId) {
@@ -60,11 +134,11 @@ const CartState = {
         
         if (index > -1) {
             this.wishlist.splice(index, 1);
-            this.showToast('Removed from wishlist', 'success');
+            this.showToast((typeof I18n !== 'undefined') ? I18n.t('toast.removedFromWishlist') : 'Removed from wishlist', 'success');
             return false;
         } else {
             this.wishlist.push(productId);
-            this.showToast('Added to wishlist', 'success');
+            this.showToast((typeof I18n !== 'undefined') ? I18n.t('toast.addedToWishlist') : 'Added to wishlist', 'success');
             return true;
         }
     },
@@ -129,7 +203,7 @@ const CartState = {
                     <a href="shop.html" class="btn btn-primary">Continue Shopping</a>
                 </div>
             `;
-            if (cartSubtotal) cartSubtotal.textContent = '$0';
+            if (cartSubtotal) cartSubtotal.textContent = CurrencyConfig.formatPrice(0);
             return;
         }
         
@@ -145,7 +219,7 @@ const CartState = {
                             <span>${item.quantity}</span>
                             <button class="qty-btn" onclick="CartState.updateCartItemQuantity(${index}, 1)">+</button>
                         </div>
-                        <span class="cart-item-price">$${item.price * item.quantity}</span>
+                        <span class="cart-item-price">${CurrencyConfig.formatPrice(item.price * item.quantity)}</span>
                     </div>
                 </div>
                 <button class="cart-item-remove" onclick="CartState.removeFromCart(${index})">
@@ -157,7 +231,7 @@ const CartState = {
         `).join('');
         
         const subtotal = this.cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-        if (cartSubtotal) cartSubtotal.textContent = `$${subtotal}`;
+        if (cartSubtotal) cartSubtotal.textContent = CurrencyConfig.formatPrice(subtotal);
     },
     
     renderWishlist() {
@@ -186,7 +260,7 @@ const CartState = {
                     <div class="cart-item-details">
                         <h4 class="cart-item-name">${product.name}</h4>
                         <p class="cart-item-variant">${CATEGORIES.find(c => c.id === product.category)?.name}</p>
-                        <span class="cart-item-price">$${product.price}</span>
+                        <span class="cart-item-price">${CurrencyConfig.formatPrice(product.price)}</span>
                     </div>
                     <div class="cart-item-actions">
                         <button class="btn btn-primary btn-sm" onclick="CartState.addToCart({

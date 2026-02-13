@@ -996,6 +996,87 @@ textarea {
     border-top: 1px solid var(--color-border);
 }
 
+/* ========================================
+   BULK ACTIONS
+   ======================================== */
+.bulk-actions-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.75rem 1.5rem;
+    background: var(--color-bg);
+    border-bottom: 1px solid var(--color-border);
+}
+
+.bulk-actions-bar span {
+    font-weight: 500;
+    color: var(--color-text);
+}
+
+.bulk-actions {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+}
+
+/* ========================================
+   CUSTOMER FILTERS
+   ======================================== */
+.customer-filters {
+    padding: 1rem 1.5rem;
+    background: var(--color-bg);
+    border-bottom: 1px solid var(--color-border);
+}
+
+.filter-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    align-items: flex-end;
+}
+
+.filter-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.filter-group label {
+    font-size: 0.75rem;
+    color: var(--color-text-secondary);
+    margin: 0;
+}
+
+.filter-group input,
+.filter-group select {
+    width: 120px;
+}
+
+/* ========================================
+   COUPON STYLES
+   ======================================== */
+.coupon-code {
+    font-family: monospace;
+    font-weight: 600;
+    color: var(--color-primary);
+    background: rgba(220, 38, 38, 0.1);
+    padding: 0.25rem 0.5rem;
+    border-radius: var(--radius-sm);
+}
+
+.coupon-type {
+    text-transform: capitalize;
+}
+
+.coupon-value {
+    font-weight: 600;
+}
+
+/* Date input styling */
+input[type="date"] {
+    font-family: inherit;
+}
+
 /* Status Select in Table */
 .status-select {
     min-width: 120px;
@@ -1364,5 +1445,133 @@ textarea {
     .toast-container {
         left: 0;
         right: 0;
+    }
+}
+
+
+/* ========================================
+   INVENTORY MANAGEMENT
+   ======================================== */
+
+/* Tabs */
+.inventory-tabs {
+    display: flex;
+    gap: 0.5rem;
+    border-bottom: 2px solid var(--color-border);
+    padding-bottom: 0;
+}
+
+.inventory-tabs .tab-btn {
+    padding: 0.75rem 1.25rem;
+    background: transparent;
+    border: none;
+    border-bottom: 2px solid transparent;
+    margin-bottom: -2px;
+    font-size: 0.9375rem;
+    font-weight: 500;
+    color: var(--color-text-secondary);
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.inventory-tabs .tab-btn:hover {
+    color: var(--color-text);
+}
+
+.inventory-tabs .tab-btn.active {
+    color: var(--color-primary);
+    border-bottom-color: var(--color-primary);
+}
+
+/* Tab Content */
+.tab-content {
+    display: none;
+}
+
+.tab-content.active {
+    display: block;
+}
+
+/* Waitlist Section */
+.waitlist-section {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+}
+
+/* Upload Zone */
+.upload-zone {
+    transition: all 0.2s;
+}
+
+.upload-zone:hover {
+    border-color: var(--color-primary) !important;
+    background: rgba(220, 38, 38, 0.05) !important;
+}
+
+.upload-zone.dragover {
+    border-color: var(--color-primary) !important;
+    background: rgba(220, 38, 38, 0.1) !important;
+}
+
+/* Stock Badges */
+.stock-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.25rem 0.75rem;
+    border-radius: 9999px;
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+.stock-badge.good {
+    background: #d1fae5;
+    color: #065f46;
+}
+
+.stock-badge.warning {
+    background: #fef3c7;
+    color: #92400e;
+}
+
+.stock-badge.critical {
+    background: #fee2e2;
+    color: #991b1b;
+}
+
+/* Card Body */
+.card-body {
+    padding: 1.5rem;
+}
+
+/* Small Table */
+.table-sm th,
+.table-sm td {
+    padding: 0.5rem 0.75rem;
+    font-size: 0.875rem;
+}
+
+/* Status Badge variants */
+.status-badge.success {
+    background: #d1fae5;
+    color: #065f46;
+}
+
+.status-badge.error {
+    background: #fee2e2;
+    color: #991b1b;
+}
+
+/* Responsive adjustments for inventory */
+@media (max-width: 768px) {
+    .inventory-tabs {
+        flex-wrap: wrap;
+    }
+    
+    .inventory-tabs .tab-btn {
+        padding: 0.5rem 0.75rem;
+        font-size: 0.875rem;
+    }
+    
+    .card-body {
+        padding: 1rem;
     }
 }

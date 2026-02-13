@@ -31,8 +31,55 @@ import {
     notFoundHandler,
     APIError 
 } from './src/middleware/errorHandler.js';
+import {
+    sendOrderConfirmation,
+    sendOrderStatusUpdate,
+    previewEmail,
+    sendTestEmail,
+    testEmailConfig,
+    getEmailQueueStats,
+    isEmailConfigured,
+    getEmailConfig
+} from './email-templates/index.js';
 
 dotenv.config();
+
+// ==========================================
+// EMAIL SERVICE CONFIGURATION
+// ==========================================
+
+const EMAIL_ENABLED = process.env.EMAIL_TEST_MODE !== 'true' && isEmailConfigured();
+const EMAIL_TEST_MODE = process.env.EMAIL_TEST_MODE === 'true';
+
+async function sendOrderEmailSafely(order, type = 'confirmation', status = null) {
+    if (EMAIL_TEST_MODE) {
+        console.log('[EMAIL TEST MODE] Would send email:', {
+            to: order.customer_email || order.customerEmail,
+            type,
+            status,
+            orderId: order.id
+        });
+        return { success: true, testMode: true };
+    }
+    
+    if (!EMAIL_ENABLED) {
+        console.log('[EMAIL] Skipping email - not configured');
+        return { success: false, reason: 'email_not_configured' };
+    }
+    
+    try {
+        if (type === 'confirmation') {
+            await sendOrderConfirmation(order);
+        } else if (type === 'status_update') {
+            await sendOrderStatusUpdate(order, status);
+        }
+        return { success: true };
+    } catch (error) {
+        console.error('[EMAIL] Failed to send:', error.message);
+        // Don't throw - email failure shouldn't break the order flow
+        return { success: false, error: error.message };
+    }
+}
 
 const app = express();
 
@@ -503,6 +550,85 @@ async function initAuditTables() {
                 updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
             )
         `);
+        
+        // Coupons table
+        db.exec(`
+            CREATE TABLE IF NOT EXISTS coupons (
+                id TEXT PRIMARY KEY,
+                code TEXT UNIQUE NOT NULL,
+                type TEXT NOT NULL,
+                value INTEGER NOT NULL,
+                min_order_amount INTEGER DEFAULT 0,
+                max_discount_amount INTEGER,
+                usage_limit INTEGER,
+                usage_count INTEGER DEFAULT 0,
+                per_customer_limit INTEGER DEFAULT 1,
+                start_date DATE,
+                end_date DATE,
+                applicable_categories TEXT,
+                applicable_products TEXT,
+                is_active BOOLEAN DEFAULT 1,
+                created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+            )
+        `);
+        db.exec(`CREATE INDEX IF NOT EXISTS idx_coupons_code ON coupons(code)`);
+        db.exec(`CREATE INDEX IF NOT EXISTS idx_coupons_active ON coupons(is_active)`);
+        
+        // Reviews table
+        db.exec(`
+            CREATE TABLE IF NOT EXISTS reviews (
+                id TEXT PRIMARY KEY,
+                product_id TEXT NOT NULL,
+                order_id TEXT,
+                customer_email TEXT NOT NULL,
+                customer_name TEXT,
+                rating INTEGER NOT NULL CHECK (rating >= 1 AND rating <= 5),
+                title TEXT,
+                review_text TEXT,
+                photos TEXT,
+                verified_purchase BOOLEAN DEFAULT 0,
+                status TEXT DEFAULT 'pending',
+                helpful_count INTEGER DEFAULT 0,
+                admin_response TEXT,
+                created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+            )
+        `);
+        db.exec(`CREATE INDEX IF NOT EXISTS idx_reviews_product ON reviews(product_id)`);
+        db.exec(`CREATE INDEX IF NOT EXISTS idx_reviews_status ON reviews(status)`);
+        db.exec(`CREATE INDEX IF NOT EXISTS idx_reviews_email ON reviews(customer_email)`);
+        
+        // Waitlist table
+        db.exec(`
+            CREATE TABLE IF NOT EXISTS waitlist (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                product_id TEXT NOT NULL,
+                customer_email TEXT NOT NULL,
+                customer_name TEXT,
+                variant_key TEXT,
+                status TEXT DEFAULT 'waiting',
+                notified_at DATETIME,
+                created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+            )
+        `);
+        db.exec(`CREATE INDEX IF NOT EXISTS idx_waitlist_product ON waitlist(product_id)`);
+        db.exec(`CREATE INDEX IF NOT EXISTS idx_waitlist_status ON waitlist(status)`);
+        db.exec(`CREATE INDEX IF NOT EXISTS idx_waitlist_email ON waitlist(customer_email)`);
+        
+        // Coupon usage tracking
+        db.exec(`
+            CREATE TABLE IF NOT EXISTS coupon_usage (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                coupon_id TEXT NOT NULL,
+                order_id TEXT NOT NULL,
+                customer_email TEXT NOT NULL,
+                discount_amount INTEGER NOT NULL,
+                used_at DATETIME DEFAULT CURRENT_TIMESTAMP
+            )
+        `);
+        db.exec(`CREATE INDEX IF NOT EXISTS idx_coupon_usage_coupon ON coupon_usage(coupon_id)`);
+        db.exec(`CREATE INDEX IF NOT EXISTS idx_coupon_usage_email ON coupon_usage(customer_email)`);
     }
     
     console.log('✅ Audit tables initialized');
@@ -802,8 +928,29 @@ app.post('/api/orders', orderLimiter, validateCreateOrder, asyncHandler(async (r
         await inventoryService.confirmReservation(orderId, items);
         console.log(`[INVENTORY] Confirmed stock deduction for order ${orderId}`);
 
+        // Send order confirmation email
+        const orderData = {
+            id: orderId,
+            customer_name: customerName,
+            customer_email: customerEmail,
+            customer_phone: customerPhone,
+            shipping_address: shippingAddress,
+            items,
+            subtotal,
+            shipping_cost: shippingCost,
+            discount: discount || 0,
+            total,
+            payment_method: paymentMethod,
+            created_at: new Date().toISOString()
+        };
+        
+        const emailResult = await sendOrderEmailSafely(orderData, 'confirmation');
+        if (emailResult.success) {
+            console.log(`[EMAIL] Confirmation sent for order ${orderId}`);
+        }
+
         console.log(`✅ Order created: ${orderId} for ${customerEmail}`);
-        res.json({ success: true, orderId });
+        res.json({ success: true, orderId, emailSent: emailResult.success });
     } catch (error) {
         // Release reservation on error
         await inventoryService.cancelReservation(orderId);
@@ -950,6 +1097,21 @@ app.post('/api/admin/orders/:id/status',
         const { status } = req.body;
         const { id } = req.params;
         
+        // Get current order data before update
+        let order;
+        if (USE_POSTGRES) {
+            const result = await db.query('SELECT * FROM orders WHERE id = $1', [id]);
+            order = result.rows[0];
+        } else {
+            order = db.prepare('SELECT * FROM orders WHERE id = ?').get(id);
+        }
+        
+        if (!order) {
+            throw new APIError('Order not found', 404, 'NOT_FOUND');
+        }
+        
+        const oldStatus = order.order_status;
+        
         if (USE_POSTGRES) {
             await db.query('UPDATE orders SET order_status = $1, updated_at = CURRENT_TIMESTAMP WHERE id = $2', 
                 [status, id]);
@@ -958,8 +1120,30 @@ app.post('/api/admin/orders/:id/status',
                 .run(status, id);
         }
         
+        // Send status update email if status changed
+        let emailResult = { success: false, reason: 'no_change' };
+        if (oldStatus !== status) {
+            const orderData = {
+                ...order,
+                shipping_address: typeof order.shipping_address === 'string' 
+                    ? JSON.parse(order.shipping_address) 
+                    : order.shipping_address,
+                items: typeof order.items === 'string' 
+                    ? JSON.parse(order.items) 
+                    : order.items
+            };
+            
+            emailResult = await sendOrderEmailSafely(orderData, 'status_update', status);
+            if (emailResult.success) {
+                console.log(`[EMAIL] Status update sent for order ${id}: ${status}`);
+            }
+        }
+        
+        // Log audit
+        await logAudit('UPDATE_STATUS', 'order', id, { status: oldStatus }, { status }, req);
+        
         console.log(`[ADMIN] Order ${id} status updated to: ${status}`);
-        res.json({ success: true });
+        res.json({ success: true, emailSent: emailResult.success });
     })
 );
 
@@ -1239,6 +1423,93 @@ ${message}
     console.log(`[CONTACT] Email sent from ${email}`);
     res.json({ success: true, message: 'Message sent successfully' });
 }));
+
+// ==========================================
+// EMAIL TESTING & PREVIEW (Admin Only)
+// ==========================================
+
+// Get email configuration status
+app.get('/api/admin/email/config', verifyAdminToken, (req, res) => {
+    res.json({ 
+        success: true, 
+        config: getEmailConfig(),
+        testMode: EMAIL_TEST_MODE,
+        enabled: EMAIL_ENABLED
+    });
+});
+
+// Test email configuration
+app.post('/api/admin/email/test-config', verifyAdminToken, asyncHandler(async (req, res) => {
+    const result = await testEmailConfig();
+    res.json(result);
+}));
+
+// Preview email template (returns HTML)
+app.get('/api/admin/email/preview/:status', verifyAdminToken, (req, res) => {
+    const { status } = req.params;
+    const validStatuses = ['pending', 'processing', 'shipped', 'delivered', 'cancelled'];
+    
+    if (!validStatuses.includes(status)) {
+        throw new APIError('Invalid status. Must be one of: ' + validStatuses.join(', '), 400, 'VALIDATION_ERROR');
+    }
+    
+    const { subject, html } = previewEmail(status);
+    
+    res.json({ 
+        success: true, 
+        status,
+        subject,
+        html 
+    });
+});
+
+// Send test email
+app.post('/api/admin/email/send-test', verifyAdminToken, asyncHandler(async (req, res) => {
+    const { email, status } = req.body;
+    
+    if (!email) {
+        throw new APIError('Email address is required', 400, 'VALIDATION_ERROR');
+    }
+    
+    const validStatuses = ['pending', 'processing', 'shipped', 'delivered', 'cancelled'];
+    const emailStatus = status || 'pending';
+    
+    if (!validStatuses.includes(emailStatus)) {
+        throw new APIError('Invalid status. Must be one of: ' + validStatuses.join(', '), 400, 'VALIDATION_ERROR');
+    }
+    
+    if (EMAIL_TEST_MODE) {
+        console.log('[EMAIL TEST MODE] Would send test email:', { to: email, status: emailStatus });
+        return res.json({ 
+            success: true, 
+            testMode: true,
+            message: 'Test mode enabled - email logged but not sent',
+            to: email,
+            status: emailStatus
+        });
+    }
+    
+    if (!EMAIL_ENABLED) {
+        throw new APIError('Email service not configured', 500, 'EMAIL_NOT_CONFIGURED');
+    }
+    
+    await sendTestEmail(email, emailStatus);
+    
+    res.json({ 
+        success: true, 
+        message: 'Test email sent successfully',
+        to: email,
+        status: emailStatus
+    });
+}));
+
+// Get email queue stats
+app.get('/api/admin/email/queue-stats', verifyAdminToken, (req, res) => {
+    res.json({
+        success: true,
+        stats: getEmailQueueStats()
+    });
+});
 
 // ==========================================
 // AUDIT LOGS (Admin Only)
@@ -1602,6 +1873,698 @@ app.post('/api/admin/settings', verifyAdminToken, asyncHandler(async (req, res) 
 }));
 
 // ==========================================
+// COUPON MANAGEMENT (Admin Only)
+// ==========================================
+
+// Get all coupons
+app.get('/api/admin/coupons', verifyAdminToken, asyncHandler(async (req, res) => {
+    let result;
+    if (USE_POSTGRES) {
+        result = await db.query('SELECT * FROM coupons ORDER BY created_at DESC');
+        result = result.rows;
+    } else {
+        result = db.prepare('SELECT * FROM coupons ORDER BY created_at DESC').all();
+    }
+    
+    const coupons = result.map(c => ({
+        ...c,
+        applicable_categories: c.applicable_categories ? JSON.parse(c.applicable_categories) : [],
+        applicable_products: c.applicable_products ? JSON.parse(c.applicable_products) : []
+    }));
+    
+    res.json({ success: true, coupons });
+}));
+
+// Create coupon
+app.post('/api/admin/coupons', verifyAdminToken, asyncHandler(async (req, res) => {
+    const { code, type, value, min_order_amount, max_discount_amount, usage_limit, per_customer_limit,
+            start_date, end_date, applicable_categories, applicable_products } = req.body;
+    
+    const id = `cpn-${Date.now()}`;
+    
+    if (USE_POSTGRES) {
+        await db.query(`
+            INSERT INTO coupons (id, code, type, value, min_order_amount, max_discount_amount, usage_limit, 
+                               per_customer_limit, start_date, end_date, applicable_categories, applicable_products)
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
+        `, [id, code.toUpperCase(), type, value, min_order_amount || 0, max_discount_amount || null, 
+            usage_limit || null, per_customer_limit || 1, start_date || null, end_date || null,
+            JSON.stringify(applicable_categories || []), JSON.stringify(applicable_products || [])]);
+    } else {
+        db.prepare(`
+            INSERT INTO coupons (id, code, type, value, min_order_amount, max_discount_amount, usage_limit, 
+                               per_customer_limit, start_date, end_date, applicable_categories, applicable_products)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        `).run(id, code.toUpperCase(), type, value, min_order_amount || 0, max_discount_amount || null, 
+               usage_limit || null, per_customer_limit || 1, start_date || null, end_date || null,
+               JSON.stringify(applicable_categories || []), JSON.stringify(applicable_products || []));
+    }
+    
+    await logAudit('CREATE_COUPON', 'coupon', id, null, { code, type, value }, req);
+    res.json({ success: true, coupon: { id, code: code.toUpperCase(), type, value } });
+}));
+
+// Update coupon
+app.put('/api/admin/coupons/:id', verifyAdminToken, asyncHandler(async (req, res) => {
+    const { id } = req.params;
+    const updates = req.body;
+    
+    const fields = [];
+    const values = [];
+    
+    if (updates.code) { fields.push('code = ?'); values.push(updates.code.toUpperCase()); }
+    if (updates.type) { fields.push('type = ?'); values.push(updates.type); }
+    if (updates.value !== undefined) { fields.push('value = ?'); values.push(updates.value); }
+    if (updates.min_order_amount !== undefined) { fields.push('min_order_amount = ?'); values.push(updates.min_order_amount); }
+    if (updates.max_discount_amount !== undefined) { fields.push('max_discount_amount = ?'); values.push(updates.max_discount_amount); }
+    if (updates.usage_limit !== undefined) { fields.push('usage_limit = ?'); values.push(updates.usage_limit); }
+    if (updates.per_customer_limit !== undefined) { fields.push('per_customer_limit = ?'); values.push(updates.per_customer_limit); }
+    if (updates.start_date !== undefined) { fields.push('start_date = ?'); values.push(updates.start_date); }
+    if (updates.end_date !== undefined) { fields.push('end_date = ?'); values.push(updates.end_date); }
+    if (updates.applicable_categories) { fields.push('applicable_categories = ?'); values.push(JSON.stringify(updates.applicable_categories)); }
+    if (updates.applicable_products) { fields.push('applicable_products = ?'); values.push(JSON.stringify(updates.applicable_products)); }
+    if (updates.is_active !== undefined) { fields.push('is_active = ?'); values.push(updates.is_active ? 1 : 0); }
+    
+    values.push(id);
+    
+    if (USE_POSTGRES) {
+        const query = `UPDATE coupons SET ${fields.join(', ').replace(/\?/g, (m, i) => `$${i + 1}`)}, updated_at = CURRENT_TIMESTAMP WHERE id = $${fields.length + 1}`;
+        await db.query(query, values);
+    } else {
+        db.prepare(`UPDATE coupons SET ${fields.join(', ')}, updated_at = datetime('now') WHERE id = ?`).run(...values);
+    }
+    
+    await logAudit('UPDATE_COUPON', 'coupon', id, null, updates, req);
+    res.json({ success: true, message: 'Coupon updated' });
+}));
+
+// Delete coupon
+app.delete('/api/admin/coupons/:id', verifyAdminToken, asyncHandler(async (req, res) => {
+    const { id } = req.params;
+    
+    if (USE_POSTGRES) {
+        await db.query('DELETE FROM coupons WHERE id = $1', [id]);
+    } else {
+        db.prepare('DELETE FROM coupons WHERE id = ?').run(id);
+    }
+    
+    await logAudit('DELETE_COUPON', 'coupon', id, null, null, req);
+    res.json({ success: true, message: 'Coupon deleted' });
+}));
+
+// Validate and apply coupon (public endpoint)
+app.post('/api/coupons/validate', asyncHandler(async (req, res) => {
+    const { code, cartTotal, customerEmail, items } = req.body;
+    
+    let result;
+    if (USE_POSTGRES) {
+        result = await db.query('SELECT * FROM coupons WHERE code = $1 AND is_active = true', [code.toUpperCase()]);
+        result = result.rows[0];
+    } else {
+        result = db.prepare('SELECT * FROM coupons WHERE code = ? AND is_active = 1').get(code.toUpperCase());
+    }
+    
+    if (!result) {
+        return res.status(400).json({ valid: false, error: 'Invalid coupon code' });
+    }
+    
+    const coupon = {
+        ...result,
+        applicable_categories: result.applicable_categories ? JSON.parse(result.applicable_categories) : [],
+        applicable_products: result.applicable_products ? JSON.parse(result.applicable_products) : []
+    };
+    
+    // Check dates
+    const now = new Date();
+    if (coupon.start_date && new Date(coupon.start_date) > now) {
+        return res.status(400).json({ valid: false, error: 'Coupon not yet valid' });
+    }
+    if (coupon.end_date && new Date(coupon.end_date) < now) {
+        return res.status(400).json({ valid: false, error: 'Coupon expired' });
+    }
+    
+    // Check usage limit
+    if (coupon.usage_limit && coupon.usage_count >= coupon.usage_limit) {
+        return res.status(400).json({ valid: false, error: 'Coupon usage limit reached' });
+    }
+    
+    // Check minimum order
+    if (cartTotal < coupon.min_order_amount) {
+        return res.status(400).json({ valid: false, error: `Minimum order amount is $${coupon.min_order_amount}` });
+    }
+    
+    // Check per-customer limit
+    if (customerEmail && coupon.per_customer_limit) {
+        let usageResult;
+        if (USE_POSTGRES) {
+            usageResult = await db.query('SELECT COUNT(*) as count FROM coupon_usage WHERE coupon_id = $1 AND customer_email = $2', 
+                [coupon.id, customerEmail]);
+            usageResult = usageResult.rows[0].count;
+        } else {
+            usageResult = db.prepare('SELECT COUNT(*) as count FROM coupon_usage WHERE coupon_id = ? AND customer_email = ?')
+                .get(coupon.id, customerEmail).count;
+        }
+        if (usageResult >= coupon.per_customer_limit) {
+            return res.status(400).json({ valid: false, error: 'Coupon already used' });
+        }
+    }
+    
+    // Calculate discount
+    let discount = 0;
+    if (coupon.type === 'percentage') {
+        discount = Math.round(cartTotal * (coupon.value / 100));
+        if (coupon.max_discount_amount && discount > coupon.max_discount_amount) {
+            discount = coupon.max_discount_amount;
+        }
+    } else if (coupon.type === 'fixed') {
+        discount = coupon.value;
+        if (discount > cartTotal) discount = cartTotal;
+    } else if (coupon.type === 'free_shipping') {
+        discount = 'free_shipping';
+    }
+    
+    res.json({ valid: true, coupon: { id: coupon.id, code: coupon.code, type: coupon.type, discount } });
+}));
+
+// ==========================================
+// REPORTS (Admin Only)
+// ==========================================
+
+// Sales report
+app.get('/api/admin/reports/sales', verifyAdminToken, asyncHandler(async (req, res) => {
+    const { startDate, endDate } = req.query;
+    
+    let sql = `
+        SELECT 
+            COUNT(*) as total_orders,
+            COALESCE(SUM(total), 0) as total_revenue,
+            COALESCE(SUM(subtotal), 0) as total_subtotal,
+            COALESCE(SUM(shipping_cost), 0) as total_shipping,
+            COALESCE(SUM(discount), 0) as total_discount,
+            COALESCE(AVG(total), 0) as average_order_value
+        FROM orders 
+        WHERE payment_status = 'paid'
+    `;
+    const params = [];
+    
+    if (startDate) {
+        sql += ` AND created_at >= ${USE_POSTGRES ? `$${params.length + 1}` : '?'}`;
+        params.push(startDate);
+    }
+    if (endDate) {
+        sql += ` AND created_at <= ${USE_POSTGRES ? `$${params.length + 1}` : '?'}`;
+        params.push(endDate);
+    }
+    
+    let result;
+    if (USE_POSTGRES) {
+        result = await db.query(sql, params);
+        result = result.rows[0];
+    } else {
+        result = db.prepare(sql).get(...params);
+    }
+    
+    res.json({ success: true, report: result });
+}));
+
+// Daily sales report
+app.get('/api/admin/reports/sales-daily', verifyAdminToken, asyncHandler(async (req, res) => {
+    const { startDate, endDate } = req.query;
+    
+    const dateFormat = USE_POSTGRES ? 'DATE(created_at)' : 'date(created_at)';
+    
+    let sql = `
+        SELECT 
+            ${dateFormat} as date,
+            COUNT(*) as orders,
+            COALESCE(SUM(total), 0) as revenue
+        FROM orders 
+        WHERE payment_status = 'paid'
+    `;
+    const params = [];
+    
+    if (startDate) {
+        sql += ` AND created_at >= ${USE_POSTGRES ? `$${params.length + 1}` : '?'}`;
+        params.push(startDate);
+    }
+    if (endDate) {
+        sql += ` AND created_at <= ${USE_POSTGRES ? `$${params.length + 1}` : '?'}`;
+        params.push(endDate);
+    }
+    
+    sql += ` GROUP BY ${dateFormat} ORDER BY date`;
+    
+    let result;
+    if (USE_POSTGRES) {
+        result = await db.query(sql, params);
+        result = result.rows;
+    } else {
+        result = db.prepare(sql).all(...params);
+    }
+    
+    res.json({ success: true, daily: result });
+}));
+
+// Top products report
+app.get('/api/admin/reports/top-products', verifyAdminToken, asyncHandler(async (req, res) => {
+    const { startDate, endDate, limit = 10 } = req.query;
+    
+    let sql = `
+        SELECT 
+            p.id,
+            p.name,
+            p.category,
+            COUNT(DISTINCT o.id) as order_count,
+            COALESCE(SUM((item->>'quantity')::int), 0) as units_sold,
+            COALESCE(SUM((item->>'price')::int * (item->>'quantity')::int), 0) as revenue
+        FROM products p
+        JOIN orders o ON o.items::text LIKE '%' || p.id || '%'
+        JOIN LATERAL jsonb_array_elements(o.items) AS item ON true
+        WHERE o.payment_status = 'paid'
+    `;
+    const params = [];
+    
+    if (startDate) {
+        sql += ` AND o.created_at >= ${USE_POSTGRES ? `$${params.length + 1}` : '?'}`;
+        params.push(startDate);
+    }
+    if (endDate) {
+        sql += ` AND o.created_at <= ${USE_POSTGRES ? `$${params.length + 1}` : '?'}`;
+        params.push(endDate);
+    }
+    
+    sql += ` GROUP BY p.id, p.name, p.category ORDER BY revenue DESC LIMIT ${USE_POSTGRES ? `$${params.length + 1}` : '?'}`;
+    params.push(parseInt(limit));
+    
+    let result;
+    if (USE_POSTGRES) {
+        result = await db.query(sql, params);
+        result = result.rows;
+    } else {
+        result = db.prepare(sql).all(...params);
+    }
+    
+    res.json({ success: true, products: result });
+}));
+
+// Sales by category report
+app.get('/api/admin/reports/sales-by-category', verifyAdminToken, asyncHandler(async (req, res) => {
+    const { startDate, endDate } = req.query;
+    
+    let sql = `
+        SELECT 
+            p.category,
+            COUNT(DISTINCT o.id) as order_count,
+            COALESCE(SUM(o.total), 0) as revenue
+        FROM orders o
+        JOIN products p ON o.items::text LIKE '%' || p.id || '%'
+        WHERE o.payment_status = 'paid'
+    `;
+    const params = [];
+    
+    if (startDate) {
+        sql += ` AND o.created_at >= ${USE_POSTGRES ? `$${params.length + 1}` : '?'}`;
+        params.push(startDate);
+    }
+    if (endDate) {
+        sql += ` AND o.created_at <= ${USE_POSTGRES ? `$${params.length + 1}` : '?'}`;
+        params.push(endDate);
+    }
+    
+    sql += ` GROUP BY p.category ORDER BY revenue DESC`;
+    
+    let result;
+    if (USE_POSTGRES) {
+        result = await db.query(sql, params);
+        result = result.rows;
+    } else {
+        result = db.prepare(sql).all(...params);
+    }
+    
+    res.json({ success: true, categories: result });
+}));
+
+// Export report
+app.get('/api/admin/reports/export', verifyAdminToken, asyncHandler(async (req, res) => {
+    const { startDate, endDate, type = 'orders' } = req.query;
+    
+    let data;
+    if (type === 'orders') {
+        let sql = 'SELECT * FROM orders WHERE 1=1';
+        const params = [];
+        
+        if (startDate) {
+            sql += ` AND created_at >= ${USE_POSTGRES ? `$${params.length + 1}` : '?'}`;
+            params.push(startDate);
+        }
+        if (endDate) {
+            sql += ` AND created_at <= ${USE_POSTGRES ? `$${params.length + 1}` : '?'}`;
+            params.push(endDate);
+        }
+        sql += ' ORDER BY created_at DESC';
+        
+        if (USE_POSTGRES) {
+            const result = await db.query(sql, params);
+            data = result.rows;
+        } else {
+            data = db.prepare(sql).all(...params);
+        }
+    }
+    
+    res.json({ success: true, data });
+}));
+
+// ==========================================
+// REVIEWS MANAGEMENT
+// ==========================================
+
+// Get reviews for a product (public)
+app.get('/api/products/:id/reviews', asyncHandler(async (req, res) => {
+    const { id } = req.params;
+    const { status = 'approved', sort = 'newest' } = req.query;
+    
+    let sql = 'SELECT * FROM reviews WHERE product_id = ?';
+    const params = [id];
+    
+    if (status) {
+        sql += ' AND status = ?';
+        params.push(status);
+    }
+    
+    const sortOrder = sort === 'newest' ? 'created_at DESC' : 
+                     sort === 'highest' ? 'rating DESC' : 
+                     sort === 'lowest' ? 'rating ASC' : 'created_at DESC';
+    sql += ` ORDER BY ${sortOrder}`;
+    
+    let result;
+    if (USE_POSTGRES) {
+        const query = sql.replace(/\?/g, (m, i) => `$${i + 1}`);
+        result = await db.query(query, params);
+        result = result.rows;
+    } else {
+        result = db.prepare(sql).all(...params);
+    }
+    
+    const reviews = result.map(r => ({
+        ...r,
+        photos: r.photos ? JSON.parse(r.photos) : []
+    }));
+    
+    // Get summary
+    let summary;
+    if (USE_POSTGRES) {
+        summary = await db.query(`
+            SELECT 
+                COUNT(*) as total,
+                AVG(rating) as average,
+                COUNT(*) FILTER (WHERE rating = 5) as five_star,
+                COUNT(*) FILTER (WHERE rating = 4) as four_star,
+                COUNT(*) FILTER (WHERE rating = 3) as three_star,
+                COUNT(*) FILTER (WHERE rating = 2) as two_star,
+                COUNT(*) FILTER (WHERE rating = 1) as one_star
+            FROM reviews 
+            WHERE product_id = $1 AND status = 'approved'
+        `, [id]);
+        summary = summary.rows[0];
+    } else {
+        summary = db.prepare(`
+            SELECT 
+                COUNT(*) as total,
+                AVG(rating) as average,
+                SUM(CASE WHEN rating = 5 THEN 1 ELSE 0 END) as five_star,
+                SUM(CASE WHEN rating = 4 THEN 1 ELSE 0 END) as four_star,
+                SUM(CASE WHEN rating = 3 THEN 1 ELSE 0 END) as three_star,
+                SUM(CASE WHEN rating = 2 THEN 1 ELSE 0 END) as two_star,
+                SUM(CASE WHEN rating = 1 THEN 1 ELSE 0 END) as one_star
+            FROM reviews 
+            WHERE product_id = ? AND status = 'approved'
+        `).get(id);
+    }
+    
+    res.json({ success: true, reviews, summary });
+}));
+
+// Get all reviews (admin)
+app.get('/api/admin/reviews', verifyAdminToken, asyncHandler(async (req, res) => {
+    const { status, productId } = req.query;
+    
+    let sql = 'SELECT r.*, p.name as product_name FROM reviews r JOIN products p ON r.product_id = p.id WHERE 1=1';
+    const params = [];
+    
+    if (status) {
+        sql += ' AND r.status = ?';
+        params.push(status);
+    }
+    if (productId) {
+        sql += ' AND r.product_id = ?';
+        params.push(productId);
+    }
+    
+    sql += ' ORDER BY r.created_at DESC';
+    
+    let result;
+    if (USE_POSTGRES) {
+        const query = sql.replace(/\?/g, (m, i) => `$${i + 1}`);
+        result = await db.query(query, params);
+        result = result.rows;
+    } else {
+        result = db.prepare(sql).all(...params);
+    }
+    
+    const reviews = result.map(r => ({
+        ...r,
+        photos: r.photos ? JSON.parse(r.photos) : []
+    }));
+    
+    res.json({ success: true, reviews });
+}));
+
+// Submit review (public)
+app.post('/api/products/:id/reviews', asyncHandler(async (req, res) => {
+    const { id } = req.params;
+    const { orderId, customerEmail, customerName, rating, title, reviewText, photos } = req.body;
+    
+    // Verify purchase
+    let order;
+    if (USE_POSTGRES) {
+        const result = await db.query('SELECT * FROM orders WHERE id = $1 AND customer_email = $2', [orderId, customerEmail]);
+        order = result.rows[0];
+    } else {
+        order = db.prepare('SELECT * FROM orders WHERE id = ? AND customer_email = ?').get(orderId, customerEmail);
+    }
+    
+    if (!order) {
+        return res.status(403).json({ error: 'Purchase verification required' });
+    }
+    
+    // Check if already reviewed
+    let existing;
+    if (USE_POSTGRES) {
+        const result = await db.query('SELECT * FROM reviews WHERE product_id = $1 AND customer_email = $2 AND order_id = $3', 
+            [id, customerEmail, orderId]);
+        existing = result.rows[0];
+    } else {
+        existing = db.prepare('SELECT * FROM reviews WHERE product_id = ? AND customer_email = ? AND order_id = ?')
+            .get(id, customerEmail, orderId);
+    }
+    
+    if (existing) {
+        return res.status(400).json({ error: 'You have already reviewed this product' });
+    }
+    
+    const reviewId = `rvw-${Date.now()}`;
+    
+    if (USE_POSTGRES) {
+        await db.query(`
+            INSERT INTO reviews (id, product_id, order_id, customer_email, customer_name, rating, title, review_text, photos, verified_purchase)
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, true)
+        `, [reviewId, id, orderId, customerEmail, customerName, rating, title, reviewText, JSON.stringify(photos || [])]);
+    } else {
+        db.prepare(`
+            INSERT INTO reviews (id, product_id, order_id, customer_email, customer_name, rating, title, review_text, photos, verified_purchase)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 1)
+        `).run(reviewId, id, orderId, customerEmail, customerName, rating, title, reviewText, JSON.stringify(photos || []));
+    }
+    
+    res.json({ success: true, message: 'Review submitted for approval', reviewId });
+}));
+
+// Approve/reject review (admin)
+app.put('/api/admin/reviews/:id/status', verifyAdminToken, asyncHandler(async (req, res) => {
+    const { id } = req.params;
+    const { status } = req.body;
+    
+    if (USE_POSTGRES) {
+        await db.query('UPDATE reviews SET status = $1, updated_at = CURRENT_TIMESTAMP WHERE id = $2', [status, id]);
+    } else {
+        db.prepare('UPDATE reviews SET status = ?, updated_at = datetime("now") WHERE id = ?').run(status, id);
+    }
+    
+    // Update product rating
+    const review = USE_POSTGRES 
+        ? (await db.query('SELECT product_id FROM reviews WHERE id = $1', [id])).rows[0]
+        : db.prepare('SELECT product_id FROM reviews WHERE id = ?').get(id);
+    
+    if (review) {
+        let stats;
+        if (USE_POSTGRES) {
+            stats = await db.query(`
+                SELECT AVG(rating) as average, COUNT(*) as count 
+                FROM reviews 
+                WHERE product_id = $1 AND status = 'approved'
+            `, [review.product_id]);
+            stats = stats.rows[0];
+        } else {
+            stats = db.prepare(`
+                SELECT AVG(rating) as average, COUNT(*) as count 
+                FROM reviews 
+                WHERE product_id = ? AND status = 'approved'
+            `).get(review.product_id);
+        }
+        
+        if (USE_POSTGRES) {
+            await db.query(`
+                UPDATE products 
+                SET average_rating = $1, review_count = $2 
+                WHERE id = $3
+            `, [stats.average || 0, stats.count, review.product_id]);
+        } else {
+            db.prepare(`
+                UPDATE products 
+                SET average_rating = ?, review_count = ? 
+                WHERE id = ?
+            `).run(stats.average || 0, stats.count, review.product_id);
+        }
+    }
+    
+    res.json({ success: true, message: `Review ${status}` });
+}));
+
+// Delete review (admin)
+app.delete('/api/admin/reviews/:id', verifyAdminToken, asyncHandler(async (req, res) => {
+    const { id } = req.params;
+    
+    if (USE_POSTGRES) {
+        await db.query('DELETE FROM reviews WHERE id = $1', [id]);
+    } else {
+        db.prepare('DELETE FROM reviews WHERE id = ?').run(id);
+    }
+    
+    res.json({ success: true, message: 'Review deleted' });
+}));
+
+// Add admin response to review
+app.post('/api/admin/reviews/:id/response', verifyAdminToken, asyncHandler(async (req, res) => {
+    const { id } = req.params;
+    const { response } = req.body;
+    
+    if (USE_POSTGRES) {
+        await db.query('UPDATE reviews SET admin_response = $1, updated_at = CURRENT_TIMESTAMP WHERE id = $2', [response, id]);
+    } else {
+        db.prepare('UPDATE reviews SET admin_response = ?, updated_at = datetime("now") WHERE id = ?').run(response, id);
+    }
+    
+    res.json({ success: true, message: 'Response added' });
+}));
+
+// ==========================================
+// WAITLIST MANAGEMENT
+// ==========================================
+
+// Join waitlist (public)
+app.post('/api/products/:id/waitlist', asyncHandler(async (req, res) => {
+    const { id } = req.params;
+    const { email, name, variantKey } = req.body;
+    
+    // Check if already in waitlist
+    let existing;
+    if (USE_POSTGRES) {
+        const result = await db.query(
+            'SELECT * FROM waitlist WHERE product_id = $1 AND customer_email = $2 AND status = $3',
+            [id, email, 'waiting']
+        );
+        existing = result.rows[0];
+    } else {
+        existing = db.prepare(
+            'SELECT * FROM waitlist WHERE product_id = ? AND customer_email = ? AND status = ?'
+        ).get(id, email, 'waiting');
+    }
+    
+    if (existing) {
+        return res.status(400).json({ error: 'You are already on the waitlist for this product' });
+    }
+    
+    if (USE_POSTGRES) {
+        await db.query(`
+            INSERT INTO waitlist (product_id, customer_email, customer_name, variant_key, status)
+            VALUES ($1, $2, $3, $4, 'waiting')
+        `, [id, email, name, variantKey]);
+    } else {
+        db.prepare(`
+            INSERT INTO waitlist (product_id, customer_email, customer_name, variant_key, status)
+            VALUES (?, ?, ?, ?, 'waiting')
+        `).run(id, email, name, variantKey);
+    }
+    
+    res.json({ success: true, message: 'Added to waitlist' });
+}));
+
+// Get waitlist for a product (admin)
+app.get('/api/admin/products/:id/waitlist', verifyAdminToken, asyncHandler(async (req, res) => {
+    const { id } = req.params;
+    
+    let result;
+    if (USE_POSTGRES) {
+        result = await db.query(
+            'SELECT * FROM waitlist WHERE product_id = $1 ORDER BY created_at DESC',
+            [id]
+        );
+        result = result.rows;
+    } else {
+        result = db.prepare(
+            'SELECT * FROM waitlist WHERE product_id = ? ORDER BY created_at DESC'
+        ).all(id);
+    }
+    
+    res.json({ success: true, waitlist: result });
+}));
+
+// Notify waitlist (admin - call this when stock is added)
+app.post('/api/admin/products/:id/notify-waitlist', verifyAdminToken, asyncHandler(async (req, res) => {
+    const { id } = req.params;
+    
+    let waitlist;
+    if (USE_POSTGRES) {
+        const result = await db.query(
+            'SELECT * FROM waitlist WHERE product_id = $1 AND status = $2',
+            [id, 'waiting']
+        );
+        waitlist = result.rows;
+    } else {
+        waitlist = db.prepare(
+            'SELECT * FROM waitlist WHERE product_id = ? AND status = ?'
+        ).all(id, 'waiting');
+    }
+    
+    // Send notification emails (in production, use email service)
+    console.log(`[WAITLIST] Notifying ${waitlist.length} customers for product ${id}`);
+    
+    // Mark as notified
+    if (USE_POSTGRES) {
+        await db.query(
+            "UPDATE waitlist SET status = 'notified', notified_at = CURRENT_TIMESTAMP WHERE product_id = $1 AND status = 'waiting'",
+            [id]
+        );
+    } else {
+        db.prepare(
+            "UPDATE waitlist SET status = 'notified', notified_at = datetime('now') WHERE product_id = ? AND status = 'waiting'"
+        ).run(id);
+    }
+    
+    res.json({ success: true, notified: waitlist.length });
+}));
+
+// ==========================================
 // DATA EXPORT (Admin Only)
 // ==========================================
 
@@ -1716,6 +2679,7 @@ async function startServer() {
     console.log(`📦 Inventory: Stock tracking + Reservation system`);
     console.log(`🖼️  Cloudinary: Image upload service`);
     console.log(`🛍️  Products: Full CRUD with image management`);
+    console.log(`📧 Email: ${EMAIL_ENABLED ? 'ENABLED' : (EMAIL_TEST_MODE ? 'TEST MODE' : 'DISABLED - Check SMTP config')}`);
     console.log(`🔑 ADMIN_PASSWORD: ${process.env.ADMIN_PASSWORD ? 'SET' : 'NOT SET - ADMIN LOGIN WILL FAIL!'}`);
     console.log(`🔗 FRONTEND_URL: ${process.env.FRONTEND_URL || 'not set'}`);
     console.log(`🛡️  Security: Helmet + Rate Limiting + Input Validation`);
