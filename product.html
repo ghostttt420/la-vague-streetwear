@@ -110,34 +110,6 @@
                 
                 <!-- Product Info -->
                 <div class="product-info-panel" id="productInfo">
-                    <!-- Accordion - Moved to top of right column -->
-                    <div class="product-accordion accordion-top">
-                        <div class="accordion-item active">
-                            <button class="accordion-header" data-i18n="product.description">
-                                Description
-                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <polyline points="6 9 12 15 18 9"></polyline>
-                                </svg>
-                            </button>
-                            <div class="accordion-content">
-                                <p id="productDescription"></p>
-                                <ul id="productFeatures"></ul>
-                            </div>
-                        </div>
-                        <div class="accordion-item">
-                            <button class="accordion-header" data-i18n="product.shipping">
-                                Shipping & Returns
-                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <polyline points="6 9 12 15 18 9"></polyline>
-                                </svg>
-                            </button>
-                            <div class="accordion-content">
-                                <p>Free standard shipping on all orders over $150. Orders are processed within 24 hours and typically arrive within 3-5 business days.</p>
-                                <p style="margin-top: 1rem;">We accept returns within 30 days of delivery. Items must be unworn with original tags attached.</p>
-                            </div>
-                        </div>
-                    </div>
-                    
                     <div class="product-header">
                         <p class="product-category" id="productCategory">Category</p>
                         <h1 class="product-title" id="productTitle">Product Name</h1>
@@ -209,6 +181,34 @@
                                 <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
                             </svg>
                             <span data-i18n="product.returns">30-day returns</span>
+                        </div>
+                    </div>
+                    
+                    <!-- Accordion - Description & Shipping -->
+                    <div class="product-accordion">
+                        <div class="accordion-item active">
+                            <button class="accordion-header" data-i18n="product.description">
+                                Description
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <polyline points="6 9 12 15 18 9"></polyline>
+                                </svg>
+                            </button>
+                            <div class="accordion-content">
+                                <p id="productDescription"></p>
+                                <ul id="productFeatures"></ul>
+                            </div>
+                        </div>
+                        <div class="accordion-item">
+                            <button class="accordion-header" data-i18n="product.shipping">
+                                Shipping & Returns
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <polyline points="6 9 12 15 18 9"></polyline>
+                                </svg>
+                            </button>
+                            <div class="accordion-content">
+                                <p>Free standard shipping on all orders over $150. Orders are processed within 24 hours and typically arrive within 3-5 business days.</p>
+                                <p style="margin-top: 1rem;">We accept returns within 30 days of delivery. Items must be unworn with original tags attached.</p>
+                            </div>
                         </div>
                     </div>
                 </div>
