@@ -451,21 +451,19 @@
     transition: var(--transition-fast);
 }
 
-/* Accordion text on left, arrow on right - force LTR layout */
-.accordion-header {
-    flex-direction: row !important;
-    direction: ltr !important;
+/* Accordion layout: text on left, icon on right */
+.accordion-text {
+    order: 1;
 }
 
-/* Even in RTL mode, keep text left and arrow right */
-[dir="rtl"] .accordion-header,
-html[dir="rtl"] .accordion-header {
-    flex-direction: row !important;
-    direction: ltr !important;
+.accordion-icon {
+    order: 2;
+    display: flex;
+    align-items: center;
 }
 
 .accordion-header svg {
-    margin-left: auto;
+    transition: var(--transition-fast);
 }
 
 .accordion-header svg {
