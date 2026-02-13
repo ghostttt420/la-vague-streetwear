@@ -96,7 +96,7 @@ function createTransporter() {
     
     // Gmail configuration
     if (provider === 'gmail') {
-        return nodemailer.createTransporter({
+        return nodemailer.createTransport({
             service: 'gmail',
             auth: {
                 user: process.env.SMTP_USER,
@@ -107,7 +107,7 @@ function createTransporter() {
     
     // SendGrid configuration
     if (provider === 'sendgrid') {
-        return nodemailer.createTransporter({
+        return nodemailer.createTransport({
             host: 'smtp.sendgrid.net',
             port: 587,
             auth: {
@@ -118,7 +118,7 @@ function createTransporter() {
     }
     
     // Generic SMTP (default)
-    return nodemailer.createTransporter({
+    return nodemailer.createTransport({
         host: process.env.SMTP_HOST,
         port: parseInt(process.env.SMTP_PORT || '587'),
         secure: process.env.SMTP_SECURE === 'true',
