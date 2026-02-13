@@ -127,6 +127,7 @@ document.addEventListener('DOMContentLoaded', () => {
         quantity: document.getElementById('quantity'),
         addToCartBtn: document.getElementById('addToCartBtn'),
         wishlistToggleBtn: document.getElementById('wishlistToggleBtn'),
+        productActions: document.querySelector('.product-actions'),
         sizeGuideBtn: document.getElementById('sizeGuideBtn'),
         relatedGrid: document.getElementById('relatedGrid'),
         
@@ -172,6 +173,13 @@ document.addEventListener('DOMContentLoaded', () => {
     // INITIALIZATION
     // ==========================================
     async function init() {
+        // Debug: Check if buttons exist
+        console.log('[Product Page] Elements found:', {
+            addToCartBtn: !!elements.addToCartBtn,
+            wishlistToggleBtn: !!elements.wishlistToggleBtn,
+            productActions: !!elements.productActions
+        });
+        
         // Get product from URL
         const urlParams = new URLSearchParams(window.location.search);
         const slug = urlParams.get('slug');
