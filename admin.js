@@ -1651,16 +1651,33 @@ async function loadAnalytics() {
         const customerStats = await fetchAPI('/admin/analytics/customers');
         const topProducts = await fetchAPI('/admin/analytics/top-products?limit=10');
         
-        // Calculate totals
-        const totalRevenue = salesData.data.reduce((sum, day) => sum + (day.revenue || 0), 0);
-        const totalOrders = salesData.data.reduce((sum, day) => sum + (day.orders || 0), 0);
+        // Calculate totals - ensure proper number parsing
+        const totalRevenue = salesData.data.reduce((sum, day) => sum + (parseInt(day.revenue) || 0), 0);
+        const totalOrders = salesData.data.reduce((sum, day) => sum + (parseInt(day.orders) || 0), 0);
         const aov = totalOrders > 0 ? Math.round(totalRevenue / totalOrders) : 0;
         
-        // Update stats cards
-        document.getElementById('analyticsRevenue').textContent = `$${totalRevenue.toLocaleString()}`;
-        document.getElementById('analyticsOrders').textContent = totalOrders.toLocaleString();
-        document.getElementById('analyticsCustomers').textContent = (customerStats.stats?.total_customers || 0).toString();
-        document.getElementById('analyticsAOV').textContent = `$${aov}`;
+        console.log('Analytics data:', { totalRevenue, totalOrders, aov, days: salesData.data.length });
+        
+        // Update stats cards with proper formatting
+        const revenueEl = document.getElementById('analyticsRevenue');
+        const ordersEl = document.getElementById('analyticsOrders');
+        
+        if (revenueEl) {
+            revenueEl.textContent = '$' + totalRevenue.toLocaleString('en-US');
+        }
+        if (ordersEl) {
+            ordersEl.textContent = totalOrders.toLocaleString('en-US');
+        }
+        
+        const customersEl = document.getElementById('analyticsCustomers');
+        const aovEl = document.getElementById('analyticsAOV');
+        
+        if (customersEl) {
+            customersEl.textContent = (customerStats.stats?.total_customers || 0).toLocaleString('en-US');
+        }
+        if (aovEl) {
+            aovEl.textContent = '$' + aov.toLocaleString('en-US');
+        }
         
         // Render sales chart (simple bar chart using DOM)
         renderSalesChart(salesData.data);
@@ -1668,6 +1685,7 @@ async function loadAnalytics() {
         // Render top products
         renderTopProducts(topProducts.products);
     } catch (error) {
+        console.error('Analytics error:', error);
         showToast('Failed to load analytics', 'error');
     } finally {
         showLoading(false);
@@ -1676,6 +1694,8 @@ async function loadAnalytics() {
 
 function renderSalesChart(data) {
     const container = document.getElementById('salesChart');
+    if (!container) return;
+    
     container.innerHTML = '';
     
     if (!data || data.length === 0) {
@@ -1683,8 +1703,15 @@ function renderSalesChart(data) {
         return;
     }
     
+    // Parse all revenue values as integers
+    const parsedData = data.map(d => ({
+        ...d,
+        revenue: parseInt(d.revenue) || 0,
+        orders: parseInt(d.orders) || 0
+    }));
+    
     // Filter out days with 0 revenue for cleaner chart
-    const filteredData = data.filter(d => (d.revenue || 0) > 0 || (d.orders || 0) > 0);
+    const filteredData = parsedData.filter(d => d.revenue > 0 || d.orders > 0);
     
     // If no sales yet, show message
     if (filteredData.length === 0) {
@@ -1692,8 +1719,9 @@ function renderSalesChart(data) {
         return;
     }
     
-    const maxRevenue = Math.max(...filteredData.map(d => d.revenue || 0));
-    const maxOrders = Math.max(...filteredData.map(d => d.orders || 0));
+    const maxRevenue = Math.max(...filteredData.map(d => d.revenue));
+    
+    console.log('Chart data:', { maxRevenue, dataPoints: filteredData.length, sample: filteredData[0] });
     
     // Chart container with better styling
     const chartWrapper = createElement('div', {
@@ -1704,46 +1732,64 @@ function renderSalesChart(data) {
     const statsDiv = createElement('div', {
         style: 'display: flex; justify-content: space-between; margin-bottom: 1rem; padding-bottom: 1rem; border-bottom: 1px solid var(--color-border);'
     });
-    statsDiv.appendChild(createElement('span', {}, `Max: $${maxRevenue.toLocaleString()}`));
+    statsDiv.appendChild(createElement('span', {}, `Max: $${maxRevenue.toLocaleString('en-US')}`));
     statsDiv.appendChild(createElement('span', {}, `${filteredData.length} days with sales`));
     chartWrapper.appendChild(statsDiv);
     
     // Chart bars
     const chartDiv = createElement('div', { 
         className: 'simple-chart',
-        style: 'display: flex; align-items: flex-end; height: 200px; gap: 8px; overflow-x: auto;'
+        style: 'display: flex; align-items: flex-end; height: 250px; gap: 8px; overflow-x: auto; padding-bottom: 30px;'
     });
     
     // Show last 14 days max for better visibility
     const displayData = filteredData.slice(-14);
     
     displayData.forEach(day => {
-        const revenue = day.revenue || 0;
-        const orders = day.orders || 0;
-        const height = maxRevenue > 0 ? (revenue / maxRevenue) * 100 : 0;
+        const revenue = day.revenue;
+        const orders = day.orders;
+        
+        // Calculate height as percentage (no minimum, let 0 be 0)
+        let heightPercent = maxRevenue > 0 ? (revenue / maxRevenue) * 100 : 0;
+        
+        // Ensure at least visible for very small values (but proportional)
+        if (revenue > 0 && heightPercent < 2) {
+            heightPercent = 2;
+        }
+        
+        console.log(`Bar ${day.date}: revenue=$${revenue}, height=${heightPercent}%`);
         
         // Bar wrapper
         const barWrapper = createElement('div', {
-            style: 'display: flex; flex-direction: column; align-items: center; min-width: 40px;'
+            style: 'display: flex; flex-direction: column; align-items: center; min-width: 50px; flex: 1;'
         });
         
-        // Revenue amount label (on top of bar)
+        // Revenue amount label (on top of bar) - format based on size
         if (revenue > 0) {
+            let labelText;
+            if (revenue >= 1000000) {
+                labelText = `$${(revenue / 1000000).toFixed(1)}M`;
+            } else if (revenue >= 1000) {
+                labelText = `$${(revenue / 1000).toFixed(0)}k`;
+            } else {
+                labelText = `$${revenue}`;
+            }
             barWrapper.appendChild(createElement('span', {
-                style: 'font-size: 0.7rem; color: var(--color-text-secondary); margin-bottom: 4px;'
-            }, `$${Math.round(revenue / 1000)}k`));
+                style: 'font-size: 0.7rem; color: var(--color-text-secondary); margin-bottom: 4px; font-weight: 500;'
+            }, labelText));
         }
         
-        // The bar
+        // The bar - use pixel height for more accurate representation
+        const barHeight = Math.max((heightPercent / 100) * 200, revenue > 0 ? 4 : 0);
         const bar = createElement('div', {
-            style: `width: 32px; background: linear-gradient(to top, var(--color-primary), var(--color-primary-dark)); height: ${Math.max(height, 5)}%; min-height: 20px; border-radius: 4px 4px 0 0; position: relative; transition: all 0.3s ease;`,
-            title: `${formatDate(day.date)}\nRevenue: $${revenue.toLocaleString()}\nOrders: ${orders}`
+            style: `width: 36px; background: linear-gradient(to top, var(--color-primary), var(--color-primary-dark)); height: ${barHeight}px; border-radius: 4px 4px 0 0; position: relative; transition: all 0.3s ease; flex-shrink: 0;`,
+            title: `${formatDate(day.date)}\nRevenue: $${revenue.toLocaleString('en-US')}\nOrders: ${orders}`
         });
         barWrapper.appendChild(bar);
         
         // Date label
         const dateLabel = createElement('span', {
-            style: 'font-size: 0.65rem; color: var(--color-text-muted); margin-top: 4px; transform: rotate(-45deg); white-space: nowrap;'
+            style: 'font-size: 0.65rem; color: var(--color-text-muted); margin-top: 8px; white-space: nowrap;'
         }, new Date(day.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }));
         barWrapper.appendChild(dateLabel);
         
@@ -1753,218 +1799,3 @@ function renderSalesChart(data) {
     chartWrapper.appendChild(chartDiv);
     container.appendChild(chartWrapper);
 }
-
-function renderTopProducts(products) {
-    const tbody = document.getElementById('topProductsTable');
-    tbody.innerHTML = '';
-    
-    if (!products || products.length === 0) {
-        const tr = createElement('tr', {}, 
-            createElement('td', { colspan: 3, className: 'text-center' }, 'No data available')
-        );
-        tbody.appendChild(tr);
-        return;
-    }
-    
-    products.forEach(product => {
-        const tr = createElement('tr');
-        tr.appendChild(createElement('td', {}, product.name));
-        tr.appendChild(createElement('td', {}, String(product.totalQty || 0)));
-        tr.appendChild(createElement('td', {}, `$${(product.totalRevenue || 0).toLocaleString()}`));
-        tbody.appendChild(tr);
-    });
-}
-
-// ==========================================
-// SETTINGS
-// ==========================================
-
-async function loadSettings() {
-    try {
-        const data = await fetchAPI('/admin/settings');
-        const settings = data.settings || {};
-        
-        // Populate form fields
-        if (settings.storeName) document.getElementById('settingStoreName').value = settings.storeName;
-        if (settings.supportEmail) document.getElementById('settingSupportEmail').value = settings.supportEmail;
-        if (settings.freeShippingThreshold) document.getElementById('settingFreeShipping').value = settings.freeShippingThreshold;
-        if (settings.shippingRate) document.getElementById('settingShippingRate').value = settings.shippingRate;
-        if (settings.newOrderEmail !== undefined) document.getElementById('settingNewOrderEmail').checked = settings.newOrderEmail === 'true';
-        if (settings.lowStockEmail !== undefined) document.getElementById('settingLowStockEmail').checked = settings.lowStockEmail === 'true';
-    } catch (error) {
-        // Silent fail - use defaults
-    }
-}
-
-async function saveSettings(e) {
-    e.preventDefault();
-    
-    const settings = {
-        storeName: document.getElementById('settingStoreName').value,
-        supportEmail: document.getElementById('settingSupportEmail').value,
-        freeShippingThreshold: document.getElementById('settingFreeShipping').value,
-        shippingRate: document.getElementById('settingShippingRate').value,
-        newOrderEmail: document.getElementById('settingNewOrderEmail').checked.toString(),
-        lowStockEmail: document.getElementById('settingLowStockEmail').checked.toString()
-    };
-    
-    try {
-        await fetchAPI('/admin/settings', {
-            method: 'POST',
-            body: { settings }
-        });
-        showToast('Settings saved successfully', 'success');
-    } catch (error) {
-        showToast('Failed to save settings', 'error');
-    }
-}
-
-// ==========================================
-// DATA EXPORT
-// ==========================================
-
-async function exportOrders() {
-    try {
-        const token = sessionStorage.getItem('adminToken');
-        const response = await fetch(`${API_URL}/admin/export/orders`, {
-            headers: { 'Authorization': `Bearer ${token}` }
-        });
-        
-        if (!response.ok) throw new Error('Export failed');
-        
-        const blob = await response.blob();
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `orders-${new Date().toISOString().split('T')[0]}.csv`;
-        document.body.appendChild(a);
-        a.click();
-        window.URL.revokeObjectURL(url);
-        a.remove();
-        
-        showToast('Orders exported successfully', 'success');
-    } catch (error) {
-        showToast('Failed to export orders', 'error');
-    }
-}
-
-async function exportProducts() {
-    try {
-        const token = sessionStorage.getItem('adminToken');
-        const response = await fetch(`${API_URL}/admin/export/products`, {
-            headers: { 'Authorization': `Bearer ${token}` }
-        });
-        
-        if (!response.ok) throw new Error('Export failed');
-        
-        const blob = await response.blob();
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `products-${new Date().toISOString().split('T')[0]}.csv`;
-        document.body.appendChild(a);
-        a.click();
-        window.URL.revokeObjectURL(url);
-        a.remove();
-        
-        showToast('Products exported successfully', 'success');
-    } catch (error) {
-        showToast('Failed to export products', 'error');
-    }
-}
-
-async function exportCustomers() {
-    // Export customers as CSV from loaded data
-    if (customersState.length === 0) {
-        showToast('No customers to export', 'error');
-        return;
-    }
-    
-    const headers = ['Name', 'Email', 'Phone', 'Orders', 'Lifetime Value', 'First Order', 'Last Order'];
-    const rows = customersState.map(c => [
-        `"${(c.customer_name || '').replace(/"/g, '""')}"`,
-        c.customer_email,
-        `"${(c.customer_phone || '').replace(/"/g, '""')}"`,
-        c.order_count || 0,
-        c.lifetime_value || 0,
-        c.first_order_date || '',
-        c.last_order_date || ''
-    ].join(','));
-    
-    const csv = [headers.join(','), ...rows].join('\n');
-    const blob = new Blob([csv], { type: 'text/csv' });
-    const url = window.URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `customers-${new Date().toISOString().split('T')[0]}.csv`;
-    document.body.appendChild(a);
-    a.click();
-    window.URL.revokeObjectURL(url);
-    a.remove();
-    
-    showToast('Customers exported successfully', 'success');
-}
-
-// ==========================================
-// EVENT LISTENERS
-// ==========================================
-document.addEventListener('DOMContentLoaded', () => {
-    // Auth
-    elements.loginForm.addEventListener('submit', handleLogin);
-    elements.logoutBtn.addEventListener('click', handleLogout);
-    
-    // Navigation
-    elements.navItems.forEach(item => {
-        item.addEventListener('click', (e) => {
-            e.preventDefault();
-            navigateTo(item.dataset.section);
-        });
-    });
-    
-    // Filters
-    elements.orderSearch.addEventListener('input', () => renderOrdersTable(state.orders));
-    elements.orderFilter.addEventListener('change', () => renderOrdersTable(state.orders));
-    elements.productSearch.addEventListener('input', () => renderProductsTable(state.products));
-    elements.inventoryFilter.addEventListener('change', () => renderInventoryTable(state.inventory));
-    
-    // Customer search
-    const customerSearch = document.getElementById('customerSearch');
-    if (customerSearch) {
-        customerSearch.addEventListener('input', () => renderCustomersTable(customersState));
-    }
-    
-    // Settings form
-    const settingsForm = document.getElementById('settingsForm');
-    if (settingsForm) {
-        settingsForm.addEventListener('submit', saveSettings);
-    }
-    
-    // Export buttons
-    const exportOrdersBtn = document.getElementById('exportOrdersBtn');
-    if (exportOrdersBtn) exportOrdersBtn.addEventListener('click', exportOrders);
-    
-    const exportProductsBtn = document.getElementById('exportProductsBtn');
-    if (exportProductsBtn) exportProductsBtn.addEventListener('click', exportProducts);
-    
-    const exportCustomersBtn = document.getElementById('exportCustomersBtn');
-    if (exportCustomersBtn) exportCustomersBtn.addEventListener('click', exportCustomers);
-    
-    // Check auth
-    checkAuth();
-});
-
-// Close modals on escape
-document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape') {
-        closeOrderModal();
-        closeProductModal();
-        closeInventoryModal();
-    }
-});
-
-// Close modals on overlay click
-window.addEventListener('click', (e) => {
-    if (e.target.classList.contains('modal')) {
-        e.target.style.display = 'none';
-    }
-});
