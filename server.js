@@ -497,6 +497,85 @@ async function initAuditTables() {
                 updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
         `);
+        
+        // Coupons table
+        await db.query(`
+            CREATE TABLE IF NOT EXISTS coupons (
+                id TEXT PRIMARY KEY,
+                code TEXT UNIQUE NOT NULL,
+                type TEXT NOT NULL,
+                value INTEGER NOT NULL,
+                min_order_amount INTEGER DEFAULT 0,
+                max_discount_amount INTEGER,
+                usage_limit INTEGER,
+                usage_count INTEGER DEFAULT 0,
+                per_customer_limit INTEGER DEFAULT 1,
+                start_date DATE,
+                end_date DATE,
+                applicable_categories JSONB,
+                applicable_products JSONB,
+                is_active BOOLEAN DEFAULT true,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        `);
+        await db.query(`CREATE INDEX IF NOT EXISTS idx_coupons_code ON coupons(code)`);
+        await db.query(`CREATE INDEX IF NOT EXISTS idx_coupons_active ON coupons(is_active)`);
+        
+        // Reviews table
+        await db.query(`
+            CREATE TABLE IF NOT EXISTS reviews (
+                id TEXT PRIMARY KEY,
+                product_id TEXT NOT NULL,
+                order_id TEXT,
+                customer_email TEXT NOT NULL,
+                customer_name TEXT,
+                rating INTEGER NOT NULL CHECK (rating >= 1 AND rating <= 5),
+                title TEXT,
+                review_text TEXT,
+                photos JSONB,
+                verified_purchase BOOLEAN DEFAULT false,
+                status TEXT DEFAULT 'pending',
+                helpful_count INTEGER DEFAULT 0,
+                admin_response TEXT,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        `);
+        await db.query(`CREATE INDEX IF NOT EXISTS idx_reviews_product ON reviews(product_id)`);
+        await db.query(`CREATE INDEX IF NOT EXISTS idx_reviews_status ON reviews(status)`);
+        await db.query(`CREATE INDEX IF NOT EXISTS idx_reviews_email ON reviews(customer_email)`);
+        
+        // Waitlist table
+        await db.query(`
+            CREATE TABLE IF NOT EXISTS waitlist (
+                id SERIAL PRIMARY KEY,
+                product_id TEXT NOT NULL,
+                customer_email TEXT NOT NULL,
+                customer_name TEXT,
+                variant_key TEXT,
+                status TEXT DEFAULT 'waiting',
+                notified_at TIMESTAMP,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        `);
+        await db.query(`CREATE INDEX IF NOT EXISTS idx_waitlist_product ON waitlist(product_id)`);
+        await db.query(`CREATE INDEX IF NOT EXISTS idx_waitlist_status ON waitlist(status)`);
+        await db.query(`CREATE INDEX IF NOT EXISTS idx_waitlist_email ON waitlist(customer_email)`);
+        
+        // Coupon usage tracking
+        await db.query(`
+            CREATE TABLE IF NOT EXISTS coupon_usage (
+                id SERIAL PRIMARY KEY,
+                coupon_id TEXT NOT NULL,
+                order_id TEXT NOT NULL,
+                customer_email TEXT NOT NULL,
+                discount_amount INTEGER NOT NULL,
+                used_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        `);
+        await db.query(`CREATE INDEX IF NOT EXISTS idx_coupon_usage_coupon ON coupon_usage(coupon_id)`);
+        await db.query(`CREATE INDEX IF NOT EXISTS idx_coupon_usage_email ON coupon_usage(customer_email)`);
     } else {
         // SQLite versions
         db.exec(`
