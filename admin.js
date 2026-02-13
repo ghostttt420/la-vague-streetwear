@@ -798,9 +798,24 @@ window.viewOrder = async function(orderId) {
     const customerEmail = normalizedOrder.customer_email || 'N/A';
     const customerPhone = normalizedOrder.customer_phone || 'N/A';
     
-    customerSection.appendChild(createElement('p', {}, createElement('strong', {}, 'Name: '), customerName));
-    customerSection.appendChild(createElement('p', {}, createElement('strong', {}, 'Email: '), customerEmail));
-    customerSection.appendChild(createElement('p', {}, createElement('strong', {}, 'Phone: '), customerPhone));
+    // Name
+    const nameP = createElement('p', {});
+    nameP.appendChild(createElement('strong', {}, 'Name: '));
+    nameP.appendChild(document.createTextNode(customerName));
+    customerSection.appendChild(nameP);
+    
+    // Email
+    const emailP = createElement('p', {});
+    emailP.appendChild(createElement('strong', {}, 'Email: '));
+    emailP.appendChild(document.createTextNode(customerEmail));
+    customerSection.appendChild(emailP);
+    
+    // Phone
+    const phoneP = createElement('p', {});
+    phoneP.appendChild(createElement('strong', {}, 'Phone: '));
+    phoneP.appendChild(document.createTextNode(customerPhone));
+    customerSection.appendChild(phoneP);
+    
     container.appendChild(customerSection);
     
     // Shipping Address
@@ -864,22 +879,45 @@ window.viewOrder = async function(orderId) {
     
     console.log('Payment values:', { subtotal, shipping, discount, total });
     
-    paymentSection.appendChild(createElement('p', {}, createElement('strong', {}, 'Subtotal: '), `$${subtotal.toLocaleString()}`));
-    paymentSection.appendChild(createElement('p', {}, createElement('strong', {}, 'Shipping: '), `$${shipping.toLocaleString()}`));
+    // Subtotal
+    const subtotalP = createElement('p', {});
+    subtotalP.appendChild(createElement('strong', {}, 'Subtotal: '));
+    subtotalP.appendChild(document.createTextNode(`$${subtotal.toLocaleString()}`));
+    paymentSection.appendChild(subtotalP);
+    
+    // Shipping
+    const shippingP = createElement('p', {});
+    shippingP.appendChild(createElement('strong', {}, 'Shipping: '));
+    shippingP.appendChild(document.createTextNode(`$${shipping.toLocaleString()}`));
+    paymentSection.appendChild(shippingP);
+    
+    // Discount
     if (discount > 0) {
-        paymentSection.appendChild(createElement('p', {}, createElement('strong', {}, 'Discount: '), `-$${discount.toLocaleString()}`));
+        const discountP = createElement('p', {});
+        discountP.appendChild(createElement('strong', {}, 'Discount: '));
+        discountP.appendChild(document.createTextNode(`-$${discount.toLocaleString()}`));
+        paymentSection.appendChild(discountP);
     }
-    const totalP = createElement('p', { className: 'text-bold', style: 'font-size: 1.1rem; margin-top: 0.5rem;' }, 
-        createElement('strong', {}, 'Total: '), `$${total.toLocaleString()}`);
+    
+    // Total
+    const totalP = createElement('p', { className: 'text-bold', style: 'font-size: 1.1rem; margin-top: 0.5rem;' });
+    totalP.appendChild(createElement('strong', {}, 'Total: '));
+    totalP.appendChild(document.createTextNode(`$${total.toLocaleString()}`));
     paymentSection.appendChild(totalP);
     
     // Payment Status
     const paymentStatus = normalizedOrder.payment_status;
     const paymentMethod = normalizedOrder.payment_method;
-    paymentSection.appendChild(createElement('p', { style: 'margin-top: 1rem;' }, 
-        createElement('strong', {}, 'Payment Status: '), paymentStatus));
-    paymentSection.appendChild(createElement('p', {}, 
-        createElement('strong', {}, 'Payment Method: '), paymentMethod));
+    
+    const statusP = createElement('p', { style: 'margin-top: 1rem;' });
+    statusP.appendChild(createElement('strong', {}, 'Payment Status: '));
+    statusP.appendChild(document.createTextNode(paymentStatus));
+    paymentSection.appendChild(statusP);
+    
+    const methodP = createElement('p', {});
+    methodP.appendChild(createElement('strong', {}, 'Payment Method: '));
+    methodP.appendChild(document.createTextNode(paymentMethod));
+    paymentSection.appendChild(methodP);
     
     container.appendChild(paymentSection);
     
