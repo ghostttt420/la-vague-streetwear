@@ -450,6 +450,15 @@
     color: var(--color-text);
     cursor: pointer;
     transition: var(--transition-fast);
+    direction: ltr;
+    text-align: left;
+}
+
+/* Force LTR layout for accordion regardless of page direction */
+[dir="rtl"] .accordion-header {
+    flex-direction: row-reverse;
+    direction: ltr;
+    text-align: left;
 }
 
 .accordion-header svg {
