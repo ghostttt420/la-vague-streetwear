@@ -63,7 +63,7 @@
 .hero-logo {
     position: absolute;
     top: -20px;
-    left: -140px;
+    left: -100px;
     margin-bottom: 0;
     z-index: 2;
 }
@@ -79,7 +79,7 @@
 
 @media (max-width: 1024px) {
     .hero-logo {
-        left: -120px;
+        left: -90px;
     }
     
     .hero-logo img {
@@ -89,7 +89,7 @@
 
 @media (max-width: 768px) {
     .hero-logo {
-        left: -100px;
+        left: -80px;
         top: -10px;
     }
     

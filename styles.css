@@ -1257,6 +1257,47 @@ button {
         display: none;
     }
     
+    /* Mobile selectors in nav menu */
+    /* Mobile selectors - hidden on desktop */
+.mobile-selectors {
+    display: none;
+}
+
+@media (max-width: 768px) {
+    .mobile-selectors {
+        display: flex;
+        gap: 1rem;
+        margin-top: 2rem;
+        padding-top: 2rem;
+        border-top: 1px solid var(--color-border);
+    }
+    
+    .mobile-currency-selector select,
+    .mobile-language-selector select {
+        background: transparent;
+        color: var(--color-text);
+        border: 1px solid var(--color-border);
+        padding: 0.75rem 1.25rem 0.75rem 0.75rem;
+        font-size: 0.875rem;
+        font-family: var(--font-heading);
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        cursor: pointer;
+        appearance: none;
+        -webkit-appearance: none;
+        -moz-appearance: none;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: right 0.4rem center;
+        min-width: 80px;
+    }
+    
+    .mobile-currency-selector select:focus,
+    .mobile-language-selector select:focus {
+        outline: none;
+        border-color: var(--color-text);
+    }
+    
     .hero-title {
         font-size: clamp(3rem, 12vw, 6rem);
     }

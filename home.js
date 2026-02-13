@@ -542,6 +542,16 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
     
+    // Initialize mobile currency selector
+    const mobileCurrencySelect = document.getElementById('mobileCurrencySelect');
+    if (mobileCurrencySelect) {
+        mobileCurrencySelect.value = CurrencyConfig.getCurrentCurrency();
+        mobileCurrencySelect.addEventListener('change', (e) => {
+            CurrencyConfig.setCurrency(e.target.value);
+            window.location.reload();
+        });
+    }
+    
     // Initialize language selector
     const languageSelect = document.getElementById('languageSelect');
     if (languageSelect) {
@@ -556,6 +566,19 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         
         languageSelect.addEventListener('change', (e) => {
+            localStorage.setItem('preferredLanguage', e.target.value);
+            document.documentElement.lang = e.target.value;
+            document.documentElement.dir = e.target.value === 'ar' ? 'rtl' : 'ltr';
+            window.location.reload();
+        });
+    }
+    
+    // Initialize mobile language selector
+    const mobileLanguageSelect = document.getElementById('mobileLanguageSelect');
+    if (mobileLanguageSelect) {
+        const savedLang = localStorage.getItem('preferredLanguage') || 'en';
+        mobileLanguageSelect.value = savedLang;
+        mobileLanguageSelect.addEventListener('change', (e) => {
             localStorage.setItem('preferredLanguage', e.target.value);
             document.documentElement.lang = e.target.value;
             document.documentElement.dir = e.target.value === 'ar' ? 'rtl' : 'ltr';
