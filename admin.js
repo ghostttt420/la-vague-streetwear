@@ -1799,3 +1799,90 @@ function renderSalesChart(data) {
     chartWrapper.appendChild(chartDiv);
     container.appendChild(chartWrapper);
 }
+
+// ==========================================
+// INITIALIZATION
+// ==========================================
+
+// Initialize when DOM is ready
+document.addEventListener('DOMContentLoaded', () => {
+    // Check if already logged in
+    checkAuth();
+    
+    // Login form handler
+    if (elements.loginForm) {
+        elements.loginForm.addEventListener('submit', handleLogin);
+    }
+    
+    // Logout button
+    if (elements.logoutBtn) {
+        elements.logoutBtn.addEventListener('click', handleLogout);
+    }
+    
+    // Navigation
+    elements.navItems.forEach(item => {
+        item.addEventListener('click', (e) => {
+            e.preventDefault();
+            const section = item.dataset.section;
+            if (section) {
+                showSection(section);
+            }
+        });
+    });
+    
+    // Set current date
+    if (elements.currentDate) {
+        elements.currentDate.textContent = new Date().toLocaleDateString('en-US', {
+            weekday: 'long',
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric'
+        });
+    }
+    
+    // Search and filter listeners
+    if (elements.orderSearch) {
+        elements.orderSearch.addEventListener('input', () => renderOrdersTable(state.orders));
+    }
+    if (elements.orderFilter) {
+        elements.orderFilter.addEventListener('change', () => renderOrdersTable(state.orders));
+    }
+    if (elements.productSearch) {
+        elements.productSearch.addEventListener('input', () => renderProductsTable(state.products));
+    }
+    if (elements.inventoryFilter) {
+        elements.inventoryFilter.addEventListener('change', () => renderInventoryTable(state.inventory));
+    }
+    
+    // Customer search
+    const customerSearch = document.getElementById('customerSearch');
+    if (customerSearch) {
+        customerSearch.addEventListener('input', () => renderCustomersTable(customersState));
+    }
+    
+    // Settings form
+    const settingsForm = document.getElementById('settingsForm');
+    if (settingsForm) {
+        settingsForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const formData = {
+                storeName: document.getElementById('storeName')?.value,
+                storeEmail: document.getElementById('storeEmail')?.value,
+                currency: document.getElementById('defaultCurrency')?.value,
+                shippingRate: parseInt(document.getElementById('shippingRate')?.value) || 0,
+                freeShippingThreshold: parseInt(document.getElementById('freeShippingThreshold')?.value) || 0
+            };
+            
+            try {
+                await fetchAPI('/admin/settings', {
+                    method: 'POST',
+                    body: formData
+                });
+                showToast('Settings saved successfully', 'success');
+            } catch (error) {
+                showToast('Failed to save settings', 'error');
+            }
+        });
+    }
+});
