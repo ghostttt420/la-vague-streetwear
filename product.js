@@ -185,6 +185,11 @@ document.addEventListener('DOMContentLoaded', () => {
         state.product = await ProductDetailAPI.getProductBySlug(slug);
         state.usingStaticData = !state.product?._fromAPI;
         
+        // Load reviews for this product
+        if (state.product) {
+            loadReviews(state.product.id);
+        }
+        
         if (!state.product) {
             console.error('[INIT] Product not found, redirecting to shop...');
             showToast('Product not found. Redirecting to shop...', 'error');
@@ -227,8 +232,8 @@ document.addEventListener('DOMContentLoaded', () => {
         // Info
         elements.productCategory.textContent = CATEGORIES.find(c => c.id === p.category)?.name;
         elements.productTitle.textContent = p.name;
-        elements.productPrice.textContent = `$${p.price}`;
-        elements.productOriginalPrice.textContent = p.compareAtPrice ? `$${p.compareAtPrice}` : '';
+        elements.productPrice.textContent = CurrencyConfig.formatPrice(p.price);
+        elements.productOriginalPrice.textContent = p.compareAtPrice ? CurrencyConfig.formatPrice(p.compareAtPrice) : '';
         elements.productShortDesc.textContent = p.description;
         elements.productDescription.textContent = p.description;
         
