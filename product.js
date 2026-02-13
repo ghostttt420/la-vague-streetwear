@@ -548,16 +548,22 @@ document.addEventListener('DOMContentLoaded', () => {
     // PAGE META
     // ==========================================
     function updatePageMeta() {
-        document.title = state.product.meta.title;
-        document.querySelector('meta[name="description"]')?.setAttribute('content', state.product.meta.description);
+        if (!state.product) return;
+        
+        // Use product name for title if meta not available
+        const title = state.product.meta?.title || `${state.product.name} | LA VAGUE`;
+        const description = state.product.meta?.description || state.product.description || '';
+        
+        document.title = title;
+        document.querySelector('meta[name="description"]')?.setAttribute('content', description);
         
         // Open Graph
         const ogTitle = document.querySelector('meta[property="og:title"]');
         const ogDesc = document.querySelector('meta[property="og:description"]');
         const ogImage = document.querySelector('meta[property="og:image"]');
         
-        if (ogTitle) ogTitle.setAttribute('content', state.product.meta.title);
-        if (ogDesc) ogDesc.setAttribute('content', state.product.meta.description);
+        if (ogTitle) ogTitle.setAttribute('content', title);
+        if (ogDesc) ogDesc.setAttribute('content', description);
         if (ogImage) ogImage.setAttribute('content', state.product.images[0].src);
     }
 
@@ -809,13 +815,22 @@ document.addEventListener('DOMContentLoaded', () => {
         currentProductId = productId;
         try {
             const response = await fetch(`${API_URL}/products/${productId}/reviews?status=approved`);
+            
+            // If endpoint returns 404 or 500, reviews table likely doesn't exist yet
+            if (!response.ok) {
+                console.log('[Reviews] Endpoint not available yet');
+                displayReviews([], { total: 0, average: 0 });
+                return;
+            }
+            
             const data = await response.json();
             
             if (data.success) {
                 displayReviews(data.reviews, data.summary);
             }
         } catch (error) {
-            console.error('Failed to load reviews:', error);
+            console.log('[Reviews] Failed to load:', error.message);
+            displayReviews([], { total: 0, average: 0 });
         }
     }
     
