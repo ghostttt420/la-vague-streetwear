@@ -76,6 +76,11 @@
     background-position: left 0.4rem center;
 }
 
+/* Mobile selectors - hidden by default on desktop */
+.mobile-selectors {
+    display: none;
+}
+
 /* Mobile adjustments */
 @media (max-width: 768px) {
     .currency-selector select,
@@ -1258,12 +1263,6 @@ button {
     }
     
     /* Mobile selectors in nav menu */
-    /* Mobile selectors - hidden on desktop */
-.mobile-selectors {
-    display: none;
-}
-
-@media (max-width: 768px) {
     .mobile-selectors {
         display: flex;
         gap: 1rem;
