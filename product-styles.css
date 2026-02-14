@@ -485,18 +485,23 @@
 }
 
 /* Accordion layout: text on left, icon on right */
-.accordion-header {
+.product-accordion .accordion-header {
+    display: flex !important;
     flex-direction: row !important;
+    justify-content: space-between !important;
+    align-items: center !important;
 }
 
-.accordion-text {
+.product-accordion .accordion-text {
+    order: 1 !important;
     margin-right: auto !important;
 }
 
-.accordion-icon {
-    margin-left: 0 !important;
-    display: flex;
-    align-items: center;
+.product-accordion .accordion-icon {
+    order: 2 !important;
+    margin-left: 8px !important;
+    display: flex !important;
+    align-items: center !important;
 }
 
 .accordion-header svg {
