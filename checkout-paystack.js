@@ -24,17 +24,26 @@
     async function loadPaystackConfig() {
         if (configLoaded) return isPaystackConfigured();
         
+        console.log('[PAYSTACK] Loading config from:', `${API_URL}/config/paystack`);
+        
         try {
-            const response = await fetch(`${API_URL}/config/paystack`);
+            const response = await fetch(`${API_URL}/config/paystack`, {
+                credentials: 'include'
+            });
+            
+            console.log('[PAYSTACK] Config response status:', response.status);
+            
             const data = await response.json();
+            console.log('[PAYSTACK] Config response:', data);
             
             if (data.success && data.configured) {
                 PAYSTACK_PUBLIC_KEY = data.publicKey;
-                console.log('[PAYSTACK] Config loaded, test mode:', data.testMode);
+                console.log('[PAYSTACK] Config loaded! Test mode:', data.testMode);
+                console.log('[PAYSTACK] Key prefix:', PAYSTACK_PUBLIC_KEY.substring(0, 10) + '...');
                 configLoaded = true;
                 return true;
             } else {
-                console.log('[PAYSTACK] Not configured on backend');
+                console.log('[PAYSTACK] Not configured on backend:', data.error);
                 configLoaded = true;
                 return false;
             }
