@@ -485,12 +485,16 @@
 }
 
 /* Accordion layout: text on left, icon on right */
+.accordion-header {
+    flex-direction: row !important;
+}
+
 .accordion-text {
-    order: 1;
+    margin-right: auto !important;
 }
 
 .accordion-icon {
-    order: 2;
+    margin-left: 0 !important;
     display: flex;
     align-items: center;
 }
