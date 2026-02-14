@@ -99,7 +99,15 @@
      * Convert amount from display currency to NGN for Paystack
      */
     function convertToNGN(amountInDisplayCurrency) {
-        const currentCurrency = CurrencyConfig.getCurrentCurrency();
+        // Check if CurrencyConfig is available
+        if (typeof CurrencyConfig === 'undefined') {
+            console.error('[PAYSTACK] CurrencyConfig not available!');
+            // Fallback: assume USD and use default rate
+            return Math.round(amountInDisplayCurrency * 1550);
+        }
+        
+        const currentCurrency = CurrencyConfig.getCurrentCurrency ? 
+            CurrencyConfig.getCurrentCurrency() : 'USD';
         
         // If already NGN, no conversion needed
         if (currentCurrency === 'NGN') {
@@ -109,7 +117,7 @@
         // Get rates
         const rates = CurrencyConfig.rates && Object.keys(CurrencyConfig.rates).length > 0 
             ? CurrencyConfig.rates 
-            : CurrencyConfig.defaultRates;
+            : (CurrencyConfig.defaultRates || { USD: 1, NGN: 1550 });
         
         const currentRate = rates[currentCurrency] || 1;
         const ngnRate = rates.NGN || 1550;
@@ -124,7 +132,8 @@
             to: 'NGN',
             toAmount: Math.round(amountInNGN),
             rate: currentRate,
-            ngnRate: ngnRate
+            ngnRate: ngnRate,
+            hasCurrencyConfig: typeof CurrencyConfig !== 'undefined'
         });
         
         return Math.round(amountInNGN);
@@ -185,11 +194,28 @@
             originalAmount: orderData.total,
             originalCurrency: CurrencyConfig.getCurrentCurrency(),
             ngnAmount: amountInNGN,
-            koboAmount: amountInKobo 
+            koboAmount: amountInKobo,
+            keyPrefix: PAYSTACK_PUBLIC_KEY.substring(0, 10) + '...',
+            hasEmail: !!customerData.email,
+            emailDomain: customerData.email ? customerData.email.split('@')[1] : 'none'
         });
         
-        const popup = new window.PaystackPop();
-        popup.newTransaction(paymentData);
+        try {
+            const popup = new window.PaystackPop();
+            const result = popup.newTransaction(paymentData);
+            console.log('[PAYSTACK] Popup opened successfully:', result);
+        } catch (error) {
+            console.error('[PAYSTACK] Failed to open popup:', error);
+            console.error('[PAYSTACK] Error details:', {
+                message: error.message,
+                stack: error.stack,
+                paymentData: {
+                    ...paymentData,
+                    key: '***hidden***' // Don't log full key
+                }
+            });
+            throw new Error('Failed to initialize Paystack: ' + (error.message || 'Unknown error'));
+        }
     }
 
     /**
