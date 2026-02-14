@@ -1019,19 +1019,10 @@ document.addEventListener('DOMContentLoaded', () => {
             };
             
             try {
-                // Get CSRF token first
-                const csrfResponse = await fetch(`${API_URL}/csrf-token`, {
-                    credentials: 'include'
-                });
-                const csrfData = await csrfResponse.json();
-                
-                const response = await fetch(`${API_URL}/products/${currentProductId}/reviews`, {
+                // Use CSRFProtection utility from utils.js
+                const response = await CSRFProtection.fetch(`${API_URL}/products/${currentProductId}/reviews`, {
                     method: 'POST',
-                    credentials: 'include',
-                    headers: { 
-                        'Content-Type': 'application/json',
-                        'X-CSRF-Token': csrfData.csrfToken
-                    },
+                    headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(reviewData)
                 });
                 

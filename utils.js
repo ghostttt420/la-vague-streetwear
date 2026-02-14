@@ -239,6 +239,9 @@ document.addEventListener('DOMContentLoaded', () => {
     CSRFProtection.init();
 });
 
+// Make CSRFProtection available globally
+window.CSRFProtection = CSRFProtection;
+
 // Export for use
 if (typeof module !== 'undefined' && module.exports) {
     module.exports = { InputMasks, debounce, ButtonState, FormValidation, SearchHelper, CSRFProtection };
