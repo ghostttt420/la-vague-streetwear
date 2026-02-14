@@ -1772,13 +1772,17 @@ function renderReviewsTable(reviews) {
 async function updateReviewStatus(reviewId, status) {
     try {
         await fetchAPI(`/admin/reviews/${reviewId}/status`, {
-            method: 'POST',
+            method: 'PUT',
             body: { status }
         });
         showToast(`Review ${status}`, 'success');
         loadReviews();
+        
+        // Refresh dashboard stats to update review counts
+        loadStats();
     } catch (error) {
-        showToast(`Failed to ${status} review`, 'error');
+        console.error(`Failed to ${status} review:`, error);
+        showToast(`Failed to ${status} review: ${error.message || 'Unknown error'}`, 'error');
     }
 }
 
