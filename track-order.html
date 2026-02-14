@@ -697,31 +697,20 @@
         }
     })();
     
-    // Initialize locale selector for track order page
+    // Initialize locale selector for track order page (Language only)
     (function initTrackOrderLocale() {
         const localeBtn = document.getElementById('localeBtn');
         const localeDropdown = document.getElementById('localeDropdown');
         
         if (!localeBtn || !localeDropdown) return;
         
-        const currentCurrency = CurrencyConfig.getCurrentCurrency();
         const currentLang = localStorage.getItem('preferredLanguage') || 'en';
         
-        // Update display
+        // Update display - language only
         const localeCurrent = document.getElementById('localeCurrent');
         if (localeCurrent) {
-            const symbols = { USD: '$', NGN: '₦', EUR: '€', GBP: '£' };
-            localeCurrent.textContent = `${symbols[currentCurrency]} · ${currentLang.toUpperCase()}`;
+            localeCurrent.textContent = currentLang.toUpperCase();
         }
-        
-        // Currency options
-        document.querySelectorAll('#currencyOptions .locale-option').forEach(btn => {
-            btn.classList.toggle('active', btn.dataset.currency === currentCurrency);
-            btn.addEventListener('click', () => {
-                CurrencyConfig.setCurrency(btn.dataset.currency);
-                window.location.reload();
-            });
-        });
         
         // Language options
         document.querySelectorAll('#languageOptions .locale-option').forEach(btn => {
