@@ -33,6 +33,39 @@
 .product-detail {
     padding: 2rem 0 6rem;
     background: var(--color-bg);
+    min-height: 80vh;
+}
+
+/* Loading State */
+.product-loading {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 60vh;
+    gap: 1.5rem;
+}
+
+.product-loading p {
+    color: var(--color-text-muted);
+    font-size: 1rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+}
+
+.loading-spinner {
+    width: 48px;
+    height: 48px;
+    border: 3px solid var(--color-border);
+    border-top-color: var(--color-accent);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
 }
 
 .product-layout {
@@ -451,15 +484,15 @@
     transition: var(--transition-fast);
 }
 
-/* Accordion layout: text on left, icon on right */
-.accordion-text {
-    order: 1;
-}
-
+/* Accordion layout: icon on left, text on right */
 .accordion-icon {
-    order: 2;
+    order: 1;
     display: flex;
     align-items: center;
+}
+
+.accordion-text {
+    order: 2;
 }
 
 .accordion-header svg {

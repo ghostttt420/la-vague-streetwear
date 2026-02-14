@@ -104,6 +104,10 @@ document.addEventListener('DOMContentLoaded', () => {
     // DOM ELEMENTS
     // ==========================================
     const elements = {
+        // Loading & Content
+        productLoading: document.getElementById('productLoading'),
+        productContent: document.getElementById('productContent'),
+        
         // Product info
         breadcrumbProduct: document.getElementById('breadcrumbProduct'),
         mainImage: document.getElementById('mainImage'),
@@ -223,6 +227,14 @@ document.addEventListener('DOMContentLoaded', () => {
         
         // Update page meta
         updatePageMeta();
+        
+        // Show content, hide loading
+        if (elements.productLoading) {
+            elements.productLoading.style.display = 'none';
+        }
+        if (elements.productContent) {
+            elements.productContent.style.display = 'block';
+        }
     }
 
     // ==========================================
