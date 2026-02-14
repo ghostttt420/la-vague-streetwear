@@ -303,11 +303,21 @@ document.addEventListener('DOMContentLoaded', () => {
     // FILTERING & SORTING
     // ==========================================
     function filterProducts() {
+        console.log('[SHOP] filterProducts called. Current category:', state.currentCategory);
+        console.log('[SHOP] Total products:', state.products.length);
+        
         let filtered = [...state.products];
         
         // Category filter
         if (state.currentCategory !== 'all') {
-            filtered = filtered.filter(p => p.category === state.currentCategory);
+            console.log('[SHOP] Filtering by category:', state.currentCategory);
+            console.log('[SHOP] Product categories:', state.products.map(p => ({ name: p.name, category: p.category })));
+            filtered = filtered.filter(p => {
+                const matches = p.category === state.currentCategory;
+                console.log(`[SHOP] ${p.name}: category=${p.category}, matches=${matches}`);
+                return matches;
+            });
+            console.log('[SHOP] Filtered count:', filtered.length);
         }
         
         // Tag filters
@@ -348,6 +358,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function setCategory(category) {
+        console.log('[SHOP] setCategory called:', category);
         state.currentCategory = category;
         
         // Update UI
@@ -698,8 +709,11 @@ document.addEventListener('DOMContentLoaded', () => {
     function bindEvents() {
         // Category filters
         elements.categoryFilters?.addEventListener('click', (e) => {
+            console.log('[SHOP] Category filter clicked:', e.target);
             if (e.target.classList.contains('filter-btn')) {
-                setCategory(e.target.dataset.category);
+                const category = e.target.dataset.category;
+                console.log('[SHOP] Setting category:', category);
+                setCategory(category);
             }
         });
         
