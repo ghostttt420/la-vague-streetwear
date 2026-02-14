@@ -1204,6 +1204,34 @@ app.post('/api/gdpr/delete', apiLimiter, asyncHandler(async (req, res) => {
 }));
 
 // ==========================================
+// PAYSTACK CONFIGURATION ENDPOINT
+// ==========================================
+
+/**
+ * Get Paystack public key
+ * GET /api/config/paystack
+ * Public endpoint - returns public key for frontend
+ */
+app.get('/api/config/paystack', (req, res) => {
+    const publicKey = process.env.PAYSTACK_PUBLIC_KEY;
+    
+    if (!publicKey) {
+        return res.status(503).json({
+            success: false,
+            error: 'Paystack not configured',
+            configured: false
+        });
+    }
+    
+    res.json({
+        success: true,
+        publicKey: publicKey,
+        configured: true,
+        testMode: publicKey.startsWith('pk_test_')
+    });
+});
+
+// ==========================================
 // PAYSTACK WEBHOOK HANDLER
 // ==========================================
 

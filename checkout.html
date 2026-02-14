@@ -286,10 +286,9 @@
     <script src="utils.js"></script>
     <script src="translations.js"></script>
     <script>
-        // Set Paystack public key from environment or fallback
-        window.PAYSTACK_PUBLIC_KEY = 'pk_test_your_test_key_here';
-        // In production, this should be injected by your build process or server
-        // Example: window.PAYSTACK_PUBLIC_KEY = '{{PAYSTACK_PUBLIC_KEY}}';
+        // Paystack public key will be loaded from /api/config/paystack
+        // This allows the key to be set via environment variable on the backend
+        window.PAYSTACK_PUBLIC_KEY = '';
     </script>
     <script src="checkout-paystack.js"></script>
     <script src="checkout.js?v=3"></script>

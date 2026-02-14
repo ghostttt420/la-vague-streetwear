@@ -7,7 +7,7 @@
     'use strict';
 
     // Configuration
-    const PAYSTACK_PUBLIC_KEY = window.PAYSTACK_PUBLIC_KEY || '';
+    let PAYSTACK_PUBLIC_KEY = window.PAYSTACK_PUBLIC_KEY || '';
     const API_URL = window.location.hostname === 'localhost' 
         ? 'http://localhost:3000/api' 
         : 'https://la-vague-api.onrender.com/api';
@@ -16,6 +16,34 @@
     let currentOrderId = null;
     let currentOrderData = null;
     let isPaystackAvailable = false;
+    let configLoaded = false;
+
+    /**
+     * Fetch Paystack configuration from backend
+     */
+    async function loadPaystackConfig() {
+        if (configLoaded) return isPaystackConfigured();
+        
+        try {
+            const response = await fetch(`${API_URL}/config/paystack`);
+            const data = await response.json();
+            
+            if (data.success && data.configured) {
+                PAYSTACK_PUBLIC_KEY = data.publicKey;
+                console.log('[PAYSTACK] Config loaded, test mode:', data.testMode);
+                configLoaded = true;
+                return true;
+            } else {
+                console.log('[PAYSTACK] Not configured on backend');
+                configLoaded = true;
+                return false;
+            }
+        } catch (error) {
+            console.error('[PAYSTACK] Failed to load config:', error);
+            configLoaded = true;
+            return false;
+        }
+    }
 
     /**
      * Check if Paystack is configured
@@ -421,6 +449,7 @@
         
         // Initialize
         init: async function() {
+            await loadPaystackConfig(); // Load config first
             await loadPaystackScript();
             updatePaymentUI();
             console.log('[PAYSTACK] Checkout initialized');
