@@ -184,6 +184,7 @@ document.addEventListener('DOMContentLoaded', () => {
         // Get form data - Match server.js expected format
         const firstName = document.getElementById('firstName').value;
         const lastName = document.getElementById('lastName').value;
+        const selectedPayment = document.querySelector('input[name="payment"]:checked')?.value || 'manual';
         const orderData = {
             customerEmail: document.getElementById('email').value,
             customerName: `${firstName} ${lastName}`,
@@ -201,13 +202,35 @@ document.addEventListener('DOMContentLoaded', () => {
             discount: state.discount,
             total: parseFloat(document.getElementById('summaryTotal').textContent.replace('$', '')) || 0,
             items: state.cart,
-            paymentMethod: 'manual',
+            paymentMethod: selectedPayment,
             notes: ''
         };
         
         // Show loading
         elements.placeOrderBtn.textContent = 'Processing...';
         elements.placeOrderBtn.disabled = true;
+        
+        // Check if Paystack payment selected and available
+        if (selectedPayment === 'paystack' && window.PaystackCheckout?.isConfigured()) {
+            console.log('[CHECKOUT] Using Paystack payment flow');
+            try {
+                await window.PaystackCheckout.processOrder(orderData);
+                // Paystack handles the rest - modal/popup flow
+                // Button will be re-enabled if user cancels
+                elements.placeOrderBtn.textContent = 'Complete Order';
+                elements.placeOrderBtn.disabled = false;
+                return;
+            } catch (error) {
+                console.error('[CHECKOUT] Paystack error:', error);
+                showToast('Payment initialization failed. Please try again.', 'error');
+                elements.placeOrderBtn.textContent = 'Complete Order';
+                elements.placeOrderBtn.disabled = false;
+                return;
+            }
+        }
+        
+        // Manual/COD payment flow
+        console.log('[CHECKOUT] Using manual payment flow');
         
         try {
             // Try to send to backend API
@@ -218,9 +241,16 @@ document.addEventListener('DOMContentLoaded', () => {
             console.log('Sending order to API:', API_URL);
             console.log('Order data:', JSON.stringify(orderData, null, 2));
             
+            // Get CSRF token for manual payment too
+            const csrfResponse = await fetch(`${API_URL}/csrf-token`);
+            const csrfData = await csrfResponse.json();
+            
             const response = await fetch(`${API_URL}/orders`, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'X-CSRF-Token': csrfData.csrfToken
+                },
                 body: JSON.stringify(orderData)
             });
             

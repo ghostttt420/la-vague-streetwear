@@ -163,8 +163,25 @@
     <script src="cart.js"></script>
     <script src="utils.js"></script>
     <script>
-        // Generate random order number
-        document.getElementById('orderNumber').textContent = Math.random().toString(36).substr(2, 6).toUpperCase();
+        // Get order details from URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const orderId = urlParams.get('order');
+        const paymentStatus = urlParams.get('status');
+        
+        // Display order number
+        if (orderId) {
+            document.getElementById('orderNumber').textContent = orderId.replace('LV-', '');
+        } else {
+            document.getElementById('orderNumber').textContent = Math.random().toString(36).substr(2, 6).toUpperCase();
+        }
+        
+        // Show payment success message if applicable
+        if (paymentStatus === 'success') {
+            const confirmationMsg = document.querySelector('.confirmation > p');
+            if (confirmationMsg) {
+                confirmationMsg.innerHTML = 'Your payment was successful! We\'ve sent a confirmation email with your order details.';
+            }
+        }
         
         // Nav scroll effect
         window.addEventListener('scroll', () => {
