@@ -4,34 +4,25 @@
  */
 
 // ==========================================
-// CURRENCY CONFIGURATION
+// CURRENCY CONFIGURATION (NGN ONLY)
 // ==========================================
 const CurrencyConfig = {
-    // Default fallback rates (USD base)
+    // NGN is the only supported currency
     defaultRates: {
-        USD: 1,
-        NGN: 1550,
-        EUR: 0.94,
-        GBP: 0.80
+        NGN: 1
     },
     
-    // Current rates (loaded from server or defaults)
-    rates: {},
+    // Current rates (NGN only)
+    rates: { NGN: 1 },
     
     // Currency symbols
     symbols: {
-        USD: '$',
-        NGN: '₦',
-        EUR: '€',
-        GBP: '£'
+        NGN: '₦'
     },
     
     // Currency names
     names: {
-        USD: 'USD',
-        NGN: 'NGN',
-        EUR: 'EUR',
-        GBP: 'GBP'
+        NGN: 'NGN'
     },
     
     // API base URL
@@ -97,54 +88,40 @@ const CurrencyConfig = {
         }
     },
     
-    // Get current currency from localStorage
+    // Get current currency (always NGN)
     getCurrentCurrency() {
-        return localStorage.getItem('preferredCurrency') || 'USD';
+        return 'NGN';
     },
     
-    // Set currency and notify listeners
+    // Set currency (no-op, always NGN)
     setCurrency(currency) {
-        if (this.rates[currency] || this.defaultRates[currency]) {
-            localStorage.setItem('preferredCurrency', currency);
-            // Dispatch custom event for currency change
-            window.dispatchEvent(new CustomEvent('currencyChanged', { detail: { currency } }));
-            return true;
-        }
-        return false;
+        // Currency switching disabled - always NGN
+        console.log('[CURRENCY] Currency switching disabled. Using NGN.');
+        return currency === 'NGN';
     },
     
-    // Convert USD amount to target currency
+    // Convert amount (always returns same amount - NGN only)
     convert(amount, targetCurrency = null) {
-        const currency = targetCurrency || this.getCurrentCurrency();
-        // Use current rates if available, otherwise fall back to defaults
-        const rate = this.rates[currency] || this.defaultRates[currency] || 1;
-        return amount * rate;
+        // No conversion needed - always NGN
+        return amount;
     },
     
-    // Format price for display
+    // Format price for display (always NGN)
     formatPrice(amount, currency = null) {
-        const targetCurrency = currency || this.getCurrentCurrency();
-        const convertedAmount = this.convert(amount, targetCurrency);
-        const symbol = this.symbols[targetCurrency];
-        
-        // Format based on currency
-        if (targetCurrency === 'NGN') {
-            // For NGN, show whole numbers without decimals
-            return `${symbol}${Math.round(convertedAmount).toLocaleString()}`;
-        }
-        
-        return `${symbol}${convertedAmount.toFixed(2)}`;
+        // Always format as NGN
+        const symbol = this.symbols.NGN;
+        // For NGN, show whole numbers without decimals
+        return `${symbol}${Math.round(amount).toLocaleString()}`;
     },
     
-    // Get all supported currencies
+    // Get all supported currencies (NGN only)
     getSupportedCurrencies() {
-        const currentRates = Object.keys(this.rates).length > 0 ? this.rates : this.defaultRates;
-        return Object.keys(currentRates);
+        return ['NGN'];
     },
     
-    // Get current rates for admin display
+    // Get current rates for admin display (NGN only)
     getCurrentRates() {
-        return Object.keys(this.rates).length > 0 ? this.rates : this.defaultRates;
+        return { NGN: 1 };
     }
 };
 

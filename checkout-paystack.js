@@ -825,14 +825,28 @@
         const modal = document.createElement('div');
         modal.id = 'paystack-modal';
         modal.innerHTML = `
-            <div class="paystack-modal-overlay">
-                <div class="paystack-modal-container">
+            <div class="paystack-modal-overlay" id="paystack-modal-overlay">
+                <div class="paystack-modal-container" id="paystack-modal-container">
                     ${content}
                 </div>
             </div>
         `;
         
         document.body.appendChild(modal);
+        
+        // Add click-outside-to-close functionality
+        const overlay = document.getElementById('paystack-modal-overlay');
+        const container = document.getElementById('paystack-modal-container');
+        
+        if (overlay && container) {
+            overlay.addEventListener('click', (e) => {
+                // Only close if clicking directly on the overlay (outside the container)
+                if (e.target === overlay) {
+                    console.log('[PAYSTACK] Modal closed by clicking outside');
+                    closeModal();
+                }
+            });
+        }
     }
 
     /**
