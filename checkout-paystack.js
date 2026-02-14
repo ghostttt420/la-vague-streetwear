@@ -96,83 +96,18 @@
     }
 
     /**
-     * Convert amount from display currency to NGN for Paystack
+     * Get base currency amount (NGN) from order data
+     * 
+     * IMPORTANT: Product prices in cart are stored in the BASE currency (NGN).
+     * The CurrencyConfig display is just for UI - it converts NGN to user's
+     * selected currency for display purposes only.
+     * 
+     * So orderData.total is ALREADY in NGN, no conversion needed!
+     * We just need to convert from Naira to Kobo (multiply by 100).
      */
-    function convertToNGN(amountInDisplayCurrency) {
-        // Check if CurrencyConfig is available
-        if (typeof CurrencyConfig === 'undefined') {
-            console.error('[PAYSTACK] CurrencyConfig not available!');
-            // Fallback: assume USD and use default rate
-            return Math.round(amountInDisplayCurrency * 1550);
-        }
-        
-        const currentCurrency = CurrencyConfig.getCurrentCurrency ? 
-            CurrencyConfig.getCurrentCurrency() : 'USD';
-        
-        console.log('[PAYSTACK] Converting from currency:', currentCurrency, 'amount:', amountInDisplayCurrency);
-        
-        // If already NGN, no conversion needed
-        if (currentCurrency === 'NGN') {
-            console.log('[PAYSTACK] Already NGN, no conversion needed');
-            return amountInDisplayCurrency;
-        }
-        
-        // Get rates - check both rates and defaultRates
-        let rates = CurrencyConfig.rates;
-        console.log('[PAYSTACK] CurrencyConfig.rates:', rates);
-        
-        if (!rates || Object.keys(rates).length === 0) {
-            rates = CurrencyConfig.defaultRates;
-            console.log('[PAYSTACK] Using defaultRates:', rates);
-        }
-        
-        if (!rates || Object.keys(rates).length === 0) {
-            console.error('[PAYSTACK] No rates available!');
-            rates = { USD: 1, NGN: 1550 }; // Hard fallback
-        }
-        
-        const currentRate = rates[currentCurrency];
-        const ngnRate = rates.NGN;
-        
-        console.log('[PAYSTACK] Rates lookup:', {
-            currentCurrency,
-            currentRate,
-            ngnRate,
-            allRates: rates
-        });
-        
-        // Validate rates
-        if (!currentRate || currentRate <= 0) {
-            console.error('[PAYSTACK] Invalid currentRate for', currentCurrency, ':', currentRate);
-            // Fallback: assume 1:1 for USD, or use common defaults
-            const fallbackRates = { USD: 1, EUR: 1.06, GBP: 1.25 };
-            const fallbackRate = fallbackRates[currentCurrency] || 1;
-            console.log('[PAYSTACK] Using fallback rate:', fallbackRate);
-            
-            const amountInNGN = (amountInDisplayCurrency / fallbackRate) * (ngnRate || 1550);
-            console.log('[PAYSTACK] Converted with fallback:', amountInNGN);
-            return Math.round(amountInNGN);
-        }
-        
-        if (!ngnRate || ngnRate <= 0) {
-            console.error('[PAYSTACK] Invalid ngnRate:', ngnRate);
-        }
-        
-        // Convert: display amount / current rate * NGN rate
-        // Example: $23 USD → 23 / 1 * 1550 = 35,650 NGN
-        const amountInNGN = (amountInDisplayCurrency / currentRate) * (ngnRate || 1550);
-        
-        console.log('[PAYSTACK] Currency conversion result:', {
-            from: currentCurrency,
-            fromAmount: amountInDisplayCurrency,
-            to: 'NGN',
-            toAmount: Math.round(amountInNGN),
-            currentRate: currentRate,
-            ngnRate: ngnRate || 1550,
-            formula: `${amountInDisplayCurrency} / ${currentRate} * ${ngnRate || 1550}`
-        });
-        
-        return Math.round(amountInNGN);
+    function getBaseAmountInNGN(amount) {
+        console.log('[PAYSTACK] Amount is already in base currency (NGN):', amount);
+        return Math.round(amount);
     }
 
     /**
@@ -183,8 +118,8 @@
             throw new Error('Paystack is not available');
         }
 
-        // Convert from display currency to NGN, then to kobo (1 NGN = 100 kobo)
-        const amountInNGN = convertToNGN(orderData.total);
+        // Amount is already in base currency (NGN), convert to kobo (1 NGN = 100 kobo)
+        const amountInNGN = getBaseAmountInNGN(orderData.total);
         const amountInKobo = amountInNGN * 100;
         
         // Validate amount
@@ -212,8 +147,9 @@
             ref: `LV-${Date.now()}`,
             metadata: {
                 order_id: orderId,
-                original_currency: CurrencyConfig.getCurrentCurrency(),
-                original_amount: orderData.total,
+                display_currency: CurrencyConfig.getCurrentCurrency(),
+                base_currency: 'NGN',
+                amount_ngn: amountInNGN,
                 custom_fields: [
                     {
                         display_name: "Order ID",
@@ -244,8 +180,9 @@
 
         console.log('[PAYSTACK] Initializing payment:', { 
             orderId, 
-            originalAmount: orderData.total,
-            originalCurrency: CurrencyConfig.getCurrentCurrency(),
+            total: orderData.total,
+            displayCurrency: CurrencyConfig.getCurrentCurrency(),
+            baseCurrency: 'NGN',
             ngnAmount: amountInNGN,
             koboAmount: amountInKobo,
             keyPrefix: PAYSTACK_PUBLIC_KEY.substring(0, 10) + '...',
