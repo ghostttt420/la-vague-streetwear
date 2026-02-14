@@ -1582,3 +1582,418 @@ input[type="date"] {
         padding: 1rem;
     }
 }
+/* ========================================
+   MOBILE RESPONSIVE ENHANCEMENTS
+   ======================================== */
+
+/* Tablet adjustments (768px - 1024px) */
+@media (max-width: 1024px) {
+    /* Sidebar becomes overlay on tablet */
+    .sidebar {
+        position: fixed;
+        z-index: 100;
+        transform: translateX(-100%);
+        transition: transform 0.3s ease;
+    }
+    
+    .sidebar.active {
+        transform: translateX(0);
+    }
+    
+    .main-content {
+        margin-left: 0;
+    }
+    
+    /* Add overlay when sidebar is open */
+    .sidebar-overlay {
+        display: none;
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.5);
+        z-index: 99;
+    }
+    
+    .sidebar-overlay.active {
+        display: block;
+    }
+    
+    /* Dashboard grid becomes single column */
+    .dashboard-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    /* Stats grid becomes 2 columns */
+    .stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    /* Tables become horizontally scrollable */
+    .table-responsive {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+    
+    .data-table {
+        min-width: 800px;
+    }
+}
+
+/* Mobile adjustments (max 768px) */
+@media (max-width: 768px) {
+    /* Login screen adjustments */
+    .login-screen {
+        padding: 1rem;
+    }
+    
+    .login-box {
+        padding: 2rem 1.5rem;
+    }
+    
+    .login-logo .logo-text {
+        font-size: 2rem;
+    }
+    
+    /* Top bar adjustments */
+    .top-bar {
+        padding: 0 1rem;
+        height: 56px;
+    }
+    
+    .top-bar h1 {
+        font-size: 1.25rem;
+    }
+    
+    .top-bar-actions {
+        gap: 0.5rem;
+    }
+    
+    .btn-text {
+        display: none;
+    }
+    
+    .btn-icon-only {
+        width: 40px;
+        padding: 0;
+        justify-content: center;
+    }
+    
+    /* Content padding reduction */
+    .content {
+        padding: 1rem;
+    }
+    
+    .content-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1rem;
+    }
+    
+    .content-header h2 {
+        font-size: 1.5rem;
+    }
+    
+    /* Stats grid becomes single column */
+    .stats-grid {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+    
+    .stat-card {
+        padding: 1.25rem;
+    }
+    
+    .stat-value {
+        font-size: 1.75rem;
+    }
+    
+    /* Card adjustments */
+    .card {
+        margin-bottom: 1rem;
+    }
+    
+    .card-header {
+        padding: 1rem;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1rem;
+    }
+    
+    .card-header h3 {
+        font-size: 1.125rem;
+    }
+    
+    .card-body {
+        padding: 1rem;
+    }
+    
+    /* Form adjustments */
+    .form-row {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+    
+    .form-section {
+        padding: 1.25rem 0;
+    }
+    
+    .form-section h4 {
+        font-size: 1rem;
+    }
+    
+    /* Table adjustments */
+    .table-responsive {
+        margin: 0 -1rem;
+        padding: 0 1rem;
+        width: calc(100% + 2rem);
+    }
+    
+    .data-table {
+        font-size: 0.875rem;
+    }
+    
+    .data-table th,
+    .data-table td {
+        padding: 0.75rem 0.5rem;
+    }
+    
+    /* Hide less important columns on mobile */
+    .data-table .col-email,
+    .data-table .col-date,
+    .data-table .col-category {
+        display: none;
+    }
+    
+    /* Filter bar adjustments */
+    .filters-bar {
+        flex-direction: column;
+        gap: 1rem;
+    }
+    
+    .search-input {
+        width: 100%;
+    }
+    
+    /* Action buttons */
+    .card-actions {
+        flex-direction: column;
+        width: 100%;
+    }
+    
+    .card-actions .btn {
+        width: 100%;
+        justify-content: center;
+    }
+    
+    /* Modal adjustments */
+    .modal-content {
+        margin: 1rem;
+        max-height: calc(100vh - 2rem);
+    }
+    
+    .modal-lg {
+        max-width: calc(100vw - 2rem);
+    }
+    
+    .modal-header {
+        padding: 1rem;
+    }
+    
+    .modal-header h3 {
+        font-size: 1.125rem;
+    }
+    
+    .modal-body {
+        padding: 1rem;
+    }
+    
+    /* Pagination adjustments */
+    .pagination {
+        flex-wrap: wrap;
+        gap: 0.25rem;
+    }
+    
+    .pagination-btn {
+        min-width: 36px;
+        height: 36px;
+        padding: 0 0.5rem;
+        font-size: 0.875rem;
+    }
+    
+    /* Status badges */
+    .status-badge {
+        font-size: 0.75rem;
+        padding: 0.25rem 0.5rem;
+    }
+    
+    /* Mobile menu button */
+    .mobile-menu-toggle {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 40px;
+        height: 40px;
+        background: transparent;
+        border: none;
+        color: var(--color-text);
+        cursor: pointer;
+        margin-right: 0.75rem;
+    }
+    
+    .mobile-menu-toggle svg {
+        width: 24px;
+        height: 24px;
+    }
+    
+    /* Charts */
+    .simple-chart {
+        height: 200px;
+        padding: 0.75rem;
+    }
+    
+    /* Inventory tabs */
+    .inventory-tabs {
+        flex-wrap: wrap;
+        gap: 0.5rem;
+    }
+    
+    .inventory-tabs .tab-btn {
+        flex: 1;
+        min-width: 100px;
+        padding: 0.5rem;
+        font-size: 0.875rem;
+    }
+    
+    /* Settings form */
+    .settings-form .form-group {
+        margin-bottom: 1.25rem;
+    }
+    
+    /* Image upload */
+    .image-upload-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    /* Order detail modal */
+    .order-detail-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    /* Toast notifications */
+    .toast {
+        left: 1rem;
+        right: 1rem;
+        max-width: none;
+    }
+}
+
+/* Small mobile adjustments (max 480px) */
+@media (max-width: 480px) {
+    /* Login screen */
+    .login-box {
+        padding: 1.5rem 1rem;
+    }
+    
+    /* Further reduce padding */
+    .content {
+        padding: 0.75rem;
+    }
+    
+    /* Stack table actions */
+    .data-table .actions-cell {
+        display: flex;
+        flex-direction: column;
+        gap: 0.25rem;
+    }
+    
+    .data-table .btn-sm {
+        padding: 0.25rem 0.5rem;
+        font-size: 0.75rem;
+    }
+    
+    /* Reduce modal padding further */
+    .modal-content {
+        margin: 0.5rem;
+    }
+    
+    .modal-body {
+        padding: 0.75rem;
+    }
+    
+    /* Image grid single column */
+    .image-upload-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    /* Currency rate inputs */
+    #currencyRatesContainer .form-row {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Touch-friendly improvements */
+@media (hover: none) and (pointer: coarse) {
+    /* Increase touch targets */
+    .nav-item {
+        padding: 1rem 1.5rem;
+    }
+    
+    .btn {
+        min-height: 44px;
+    }
+    
+    .data-table td {
+        padding: 1rem 0.75rem;
+    }
+    
+    /* Remove hover effects on touch devices */
+    .nav-item:hover {
+        background: transparent;
+    }
+    
+    .nav-item:active {
+        background: rgba(255, 255, 255, 0.1);
+    }
+    
+    .btn:hover {
+        transform: none;
+    }
+    
+    .btn:active {
+        transform: scale(0.98);
+    }
+}
+
+/* Hide mobile menu toggle on desktop */
+@media (min-width: 1025px) {
+    .mobile-menu-toggle {
+        display: none;
+    }
+}
+
+/* Print styles for admin reports */
+@media print {
+    .sidebar,
+    .top-bar,
+    .card-actions,
+    .btn {
+        display: none !important;
+    }
+    
+    .main-content {
+        margin-left: 0;
+    }
+    
+    .content {
+        padding: 0;
+    }
+    
+    .card {
+        border: 1px solid #ddd;
+        break-inside: avoid;
+    }
+    
+    body {
+        background: white;
+        color: black;
+    }
+}

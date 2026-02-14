@@ -1852,8 +1852,48 @@ document.addEventListener('DOMContentLoaded', () => {
             const section = item.dataset.section;
             if (section) {
                 navigateTo(section);
+                // Close mobile menu after navigation
+                closeMobileMenu();
             }
         });
+    });
+    
+    // Mobile menu toggle
+    const mobileMenuToggle = document.getElementById('mobileMenuToggle');
+    const sidebar = document.querySelector('.sidebar');
+    const sidebarOverlay = document.getElementById('sidebarOverlay');
+    
+    function openMobileMenu() {
+        sidebar?.classList.add('active');
+        sidebarOverlay?.classList.add('active');
+        document.body.style.overflow = 'hidden';
+    }
+    
+    function closeMobileMenu() {
+        sidebar?.classList.remove('active');
+        sidebarOverlay?.classList.remove('active');
+        document.body.style.overflow = '';
+    }
+    
+    if (mobileMenuToggle) {
+        mobileMenuToggle.addEventListener('click', () => {
+            if (sidebar?.classList.contains('active')) {
+                closeMobileMenu();
+            } else {
+                openMobileMenu();
+            }
+        });
+    }
+    
+    if (sidebarOverlay) {
+        sidebarOverlay.addEventListener('click', closeMobileMenu);
+    }
+    
+    // Close mobile menu on window resize if moving to desktop
+    window.addEventListener('resize', () => {
+        if (window.innerWidth > 1024) {
+            closeMobileMenu();
+        }
     });
     
     // Set current date

@@ -1,0 +1,28 @@
+# LA VAGUE - Development Dockerfile
+# Optimized for local development with hot reloading
+
+FROM node:20-alpine
+
+# Install development tools
+RUN apk add --no-cache \
+    python3 \
+    make \
+    g++ \
+    git
+
+WORKDIR /app
+
+# Copy package files
+COPY package*.json ./
+
+# Install all dependencies (including devDependencies)
+RUN npm install
+
+# Copy the rest of the application
+COPY . .
+
+# Expose ports for app and debugger
+EXPOSE 3000 9229
+
+# Start in development mode with hot reloading
+CMD ["npm", "run", "dev"]
