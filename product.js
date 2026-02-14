@@ -348,7 +348,7 @@ document.addEventListener('DOMContentLoaded', () => {
         elements.relatedGrid.innerHTML = related.map(product => `
             <article class="product-card" onclick="window.location.href='product.html?slug=${product.slug}'">
                 <div class="product-image-wrapper">
-                    ${product.badge ? `<span class="product-badge ${product.badge.toLowerCase()}">${product.badge}</span>` : ''}
+                    ${product.badge && product.badge.toLowerCase() !== 'null' ? `<span class="product-badge ${product.badge.toLowerCase()}">${product.badge}</span>` : ''}
                     <img src="${product.images[0]?.src || ''}" alt="${product.images[0]?.alt || product.name}" class="product-image" loading="lazy">
                 </div>
                 <div class="product-info">

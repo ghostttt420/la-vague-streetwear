@@ -239,7 +239,7 @@ document.addEventListener('DOMContentLoaded', () => {
             return `
             <article class="product-card reveal-up" data-product-id="${product.id}">
                 <div class="product-image-wrapper" onclick="window.openProductPage('${product.slug}')">
-                    ${product.badge ? `<span class="product-badge ${product.badge.toLowerCase()}">${product.badge}</span>` : ''}
+                    ${product.badge && product.badge.toLowerCase() !== 'null' ? `<span class="product-badge ${product.badge.toLowerCase()}">${product.badge}</span>` : ''}
                     <img src="${firstImage.src}" alt="${firstImage.alt}" class="product-image" loading="lazy">
                     ${secondImage ? `<img src="${secondImage.src}" alt="${secondImage.alt}" class="product-image-hover" loading="lazy">` : ''}
                     <div class="product-actions">

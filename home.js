@@ -99,7 +99,7 @@ document.addEventListener('DOMContentLoaded', () => {
         elements.featuredProducts.innerHTML = featured.map(product => `
             <article class="product-card reveal-up" onclick="window.location.href='product.html?slug=${product.slug}'">
                 <div class="product-image-wrapper">
-                    ${product.badge ? `<span class="product-badge ${product.badge.toLowerCase()}">${product.badge}</span>` : ''}
+                    ${product.badge && product.badge.toLowerCase() !== 'null' ? `<span class="product-badge ${product.badge.toLowerCase()}">${product.badge}</span>` : ''}
                     <img src="${product.images[0].src}" alt="${product.images[0].alt}" class="product-image" loading="lazy">
                     ${product.images[1] ? `<img src="${product.images[1].src}" alt="${product.images[1].alt}" class="product-image-hover" loading="lazy">` : ''}
                 </div>
