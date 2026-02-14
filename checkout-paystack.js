@@ -301,9 +301,19 @@
             throw new Error('Paystack not available');
         }
         
-        // Create order first
-        const csrfResponse = await fetch(`${API_URL}/csrf-token`);
-        const csrfData = await csrfResponse.json();
+        // Get CSRF token first (with credentials for cookie)
+        let csrfToken = '';
+        try {
+            const csrfResponse = await fetch(`${API_URL}/csrf-token`, {
+                credentials: 'include'
+            });
+            const csrfData = await csrfResponse.json();
+            csrfToken = csrfData.csrfToken;
+            console.log('[PAYSTACK] CSRF token obtained');
+        } catch (error) {
+            console.error('[PAYSTACK] Failed to get CSRF token:', error);
+            throw new Error('CSRF token missing - please refresh and try again');
+        }
         
         const orderPayload = {
             ...orderData,
@@ -314,9 +324,10 @@
         
         const response = await fetch(`${API_URL}/orders`, {
             method: 'POST',
+            credentials: 'include',
             headers: { 
                 'Content-Type': 'application/json',
-                'X-CSRF-Token': csrfData.csrfToken
+                'X-CSRF-Token': csrfToken
             },
             body: JSON.stringify(orderPayload)
         });
@@ -324,7 +335,7 @@
         const result = await response.json();
         
         if (!response.ok || !result.success) {
-            throw new Error(result.error || 'Failed to create order');
+            throw new Error(result.error || result.message || 'Failed to create order');
         }
         
         currentOrderId = result.orderId;

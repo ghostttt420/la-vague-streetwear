@@ -242,11 +242,14 @@ document.addEventListener('DOMContentLoaded', () => {
             console.log('Order data:', JSON.stringify(orderData, null, 2));
             
             // Get CSRF token for manual payment too
-            const csrfResponse = await fetch(`${API_URL}/csrf-token`);
+            const csrfResponse = await fetch(`${API_URL}/csrf-token`, {
+                credentials: 'include'
+            });
             const csrfData = await csrfResponse.json();
             
             const response = await fetch(`${API_URL}/orders`, {
                 method: 'POST',
+                credentials: 'include',
                 headers: { 
                     'Content-Type': 'application/json',
                     'X-CSRF-Token': csrfData.csrfToken
