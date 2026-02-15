@@ -2400,7 +2400,7 @@ async function loadCoupons() {
         const table = createElement('table', { className: 'table table-sm' });
         const thead = createElement('thead');
         const headerRow = createElement('tr');
-        ['Code', 'Type', 'Value', 'Usage', 'Status', 'Actions'].forEach(text => {
+        ['Code', 'Type', 'Value', 'Usage', 'Expiry', 'Status', 'Actions'].forEach(text => {
             headerRow.appendChild(createElement('th', {}, text));
         });
         thead.appendChild(headerRow);
@@ -2420,18 +2420,34 @@ async function loadCoupons() {
             // Value
             let valueText = '-';
             if (coupon.type === 'percentage') valueText = `${coupon.value}%`;
-            else if (coupon.type === 'fixed') valueText = `₦${coupon.value}`;
+            else if (coupon.type === 'fixed') valueText = `₦${coupon.value.toLocaleString()}`;
             else if (coupon.type === 'free_shipping') valueText = 'Free';
             tr.appendChild(createElement('td', {}, valueText));
             
-            // Usage
-            const usageText = coupon.usageLimit 
-                ? `${coupon.usage_count || 0} / ${coupon.usage_limit}` 
-                : `${coupon.usage_count || 0} / ∞`;
+            // Usage - fixed field names
+            const usageCount = coupon.usage_count || 0;
+            const usageLimit = coupon.usage_limit;
+            const usageText = usageLimit 
+                ? `${usageCount} / ${usageLimit}` 
+                : `${usageCount} / ∞`;
             tr.appendChild(createElement('td', {}, usageText));
             
+            // Expiry
+            let expiryText = 'No expiry';
+            if (coupon.end_date) {
+                const endDate = new Date(coupon.end_date);
+                const now = new Date();
+                expiryText = endDate < now 
+                    ? `Expired ${formatDate(coupon.end_date)}` 
+                    : `Until ${formatDate(coupon.end_date)}`;
+            }
+            tr.appendChild(createElement('td', {}, expiryText));
+            
             // Status
-            const isActive = coupon.is_active && (!coupon.end_date || new Date(coupon.end_date) > new Date());
+            const now = new Date();
+            const isActive = coupon.is_active && 
+                (!coupon.start_date || new Date(coupon.start_date) <= now) &&
+                (!coupon.end_date || new Date(coupon.end_date) >= now);
             const statusBadge = createElement('span', { 
                 className: `status-badge ${isActive ? 'active' : 'inactive'}` 
             }, isActive ? 'Active' : 'Inactive');
