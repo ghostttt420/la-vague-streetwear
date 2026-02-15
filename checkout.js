@@ -21,6 +21,7 @@ document.addEventListener('DOMContentLoaded', () => {
         discountCode: null,
         settings: {
             shippingRate: 10,
+            expressShippingRate: 25,
             freeShippingThreshold: 150
         }
     };
@@ -55,11 +56,13 @@ document.addEventListener('DOMContentLoaded', () => {
             
             if (data.success && data.settings) {
                 state.settings.shippingRate = data.settings.shippingRate || 10;
+                state.settings.expressShippingRate = data.settings.expressShippingRate || 25;
                 state.settings.freeShippingThreshold = data.settings.freeShippingThreshold || 150;
                 state.shipping = state.settings.shippingRate;
                 
                 // Update shipping display
                 document.getElementById('standardShipping').textContent = `₦${state.settings.shippingRate.toLocaleString()}.00`;
+                document.getElementById('expressShipping').textContent = `₦${state.settings.expressShippingRate.toLocaleString()}.00`;
                 
                 console.log('[CHECKOUT] Settings loaded:', state.settings);
             }
@@ -431,7 +434,7 @@ document.addEventListener('DOMContentLoaded', () => {
             option.addEventListener('change', (e) => {
                 const subtotal = state.cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
             if (e.target.value === 'express') {
-                state.shipping = 2500; // Fixed express shipping
+                state.shipping = state.settings.expressShippingRate;
             } else if (subtotal >= state.settings.freeShippingThreshold) {
                 state.shipping = 0;
             } else {
